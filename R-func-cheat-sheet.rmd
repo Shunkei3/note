@@ -1,0 +1,462 @@
+---
+title: "R Function Cheat Sheet"
+author: "Shunkei Kakimoto"
+output:
+  html_document:
+    number_sections: yes
+    theme: flatly
+    toc_float: yes
+    toc: yes
+    toc_depth: 2
+geometry: margin=1in
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(here)
+
+here::i_am("Dropbox/R-project/R-functions/GitControlled/R-func-cheat-sheet.rmd")
+
+# opts_knit$set(root.dir = "")
+# opts_knit$set(root.dir = here())
+
+knitr::opts_chunk$set(
+  echo = TRUE,
+  cache = FALSE,
+  eval = FALSE, 
+  comment = NA,
+  message = FALSE,
+  warning = FALSE,
+  tidy = FALSE,
+  cache.lazy = FALSE,
+  #--- figure ---#
+  dpi = 400,
+  fig.width = 7.5,
+  fig.height = 5,
+  out.width = "750px",
+  out.height = "500px"
+)
+
+# /*===== Basic Packages  =====*/
+# /*---- Data Wrangling ----*/
+library(data.table)
+library(tidyverse)
+library(DescTools)
+library(maps)
+
+# /*---- Visualization ----*/
+library(RColorBrewer)
+library(patchwork)
+library(ggplot2)
+library(ggthemes)
+library(ggpubr)
+library(viridis)
+library(grid)
+library(gridExtra)
+library(GGally)
+
+# /*---- Model Summary ----*/
+library(stats)
+library(modelsummary)
+library(flextable)
+library(officer)
+library(officedown)
+library(gt)
+
+```
+
+# Contents
+
+## Topic
++ [Source all the functions in the Functions folder](#SourceFunction)
++ [Data Table Operation](#data_table)
++ [Manage strings](#ManageStrings)
++ [Basic Statics Summary](#SummaryTable)
+
+
+## A list of useful functions
+
+### High
++ [**melt()**](#melt)
+	* wide- to long-format data
+
++ [**dcast()**](#dcast)
+	* long- to wide-format data 
+
++ [**download()**](#Downlowd): Downlaod files: downloader package
+
++ <span style="color:green">**na.omit(., cols = "usage")**</span>
+	* remove NA from specific columns
+
++ [**as.formula()**](#formula)
+
++ [**eval()**](#eval)
+	* evaluate an R expression in a specified environment
+
++ <span style="color:green">**as.numeric(as.vector(temp.df_for4[i,]))**</span>
+	* * convert a list data to vector
++ <span style="color:green">**do.call(c, lapply(seq(to=2241, by=160), create.number_for4))**</span>x
+	* stratified list data to a single list data
+
++ <span style="color:green">**unlist()**</span>
+		-  this is useful when using lapply function
+
++ [***stringr***](#stringr)
+	* <span style="color:green">str_detect()</span>
+	* <span style="color:gren">str_pad(string, width, side = c("left", "right", "both"), pad = " ")</span>
+
++ <span style="color:green">**fread()**</span>: when you read a large file (ex. .txt)
+
+<br>
+
+### Low
++ <span style="color:blue">setcolorder()</span>
+	* change the column order
+
++ <span style="color:blue">conv_unit(60, "ft", "m")</span>
+	* Converts common units of measurement for a variety of dimensions
+
++ <span style="color:blue"> </span>
+
++ <span style="color:blue">tempfile()</span>
+
++ [**list.files()**](#listfiles)
+	* produce charactervector of the names of files or directories in the named directory
+
++ <span style="color:blue">seq_length()</span>
+	* e.g., seq_length(4) produces 1,2,3,4 
+
++ [**while loop**](#whileloop)
+
++ <span style="color:blue">require()</span>
+
++ <span style="color:blue">arrange()</span>
+	*  ascending order
+	* <span style="color:blue">arrange(, desc())</span>
+		-  descending order
+
++ [**shift()**](#shift)
+	* calculate lead/lag for cectors and lists
+
++ <span style="color:blue">nchar()</span>
+	* character counting 
+
++ <span style="color:blue">summarise()</span>
+	* is a convenient function to create a quick data frame
+
+---
+
+# Topics
+
+## Data Table Operation {#data_table}
++ `DT[[ ]]`
+	* substruct single column from data.table as a vector using the name of the column
+
++ `rbindlist()`: combine a list of of the datasets into a single data.table
++ `rbindlist(tmax_by_county, idcol = "id")`   
+
++ `CJ( )`: from `data.table` package, (C)ross (J)oin. A data.table is formed from the cross product of the vectors. For example, 10 ids, and 100 dates, CJ returns a 1000 row table containing all the dates for all the ids. It gains sorted, which by default is TRUE for backwards compatibility. FALSE retains input order.
+
++ `fifelse()`: from `data.table` package. A faster and more robust replacement of `ifelse` fucntion.
+	* the same syntax as `ifelse()` function
+	* `fifelse(test, yes, no, na=NA)`
+
++ `data.table(, roll=TRUE)`: forward par of the rolling join
+
+```{r}
+data.table(, roll=TRUE): (f)
+dt2[dt1, roll=TRUE, on=“joint_y”]
+```
+
+for each joint_y of dt1, finds joint_y of dt2 that is closest to joint_y of dt1 with the condition joint_y of dt1 >= joint_y of dt2
+
+<br>
+
++ If you want to select columns with a sequence of coolumn names
+
+```{r}
+report_res_allML[,select(.SD, Method, Model, Min.:Max., cumulative_pi_loss)]
+```
+
+
+```{r}
+CJ();
+N <- 1000
+T <- 10
+
+reg_data <- 
+  CJ(id = 1:N, t = 1:T) %>% 
+  #=== individual FE ===#
+  .[, ind_fe := rnorm(1), by = id] %>% 
+  #=== year FE ===#
+  .[, time_fe := rnorm(1), by = t] %>% 
+  #=== covariates (independent) ===#
+  .[, 
+    `:=`(
+      x_1 = rnorm(1), 
+      x_2 = rnorm(1),
+      x_3 = rnorm(1)
+    ), 
+    by = .(id, t)
+  ]
+```
+
+<br>
+
+## Source all the functions in the Functions folder {#SourceFunction}
+
+```{r}
+fs::dir_ls(here("Codes", "Functions", "R"), full.names = TRUE) %>%
+  lapply(., function(x) source(x))
+```
+
+## Manage strings {#ManageStrings}
+
++ `grep()`: search for matches to argument `pattern` within each element of a character vectore
+
+```{r}
+new_names[#]
+```
+
+<br>
+
++ `gsub()`:
+	* perform replacement of detail and all matches respectively remove all text before some symbol: 
+	* `gsub(pattern, replacement, x, ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE)`
+
+
+```{r}
+# this remove all texts before “=“
+gsub(".*=","","air_temperature_day=40446") 
+
+text <- "40015"
+# text <- "6047"
+x <- sub("(.*)(.{3})", "\\1_\\2", text)
+gsub("_.*", "", x) 
+gsub(".*_", "", x) 
+
+
+gsub(“20”, “”, as.character(2000:2019))
+
+
+# replace “ “(space) with “_”(undervar)
+new_names <- names(subset_prop_full) %>%
+	 gsub(pattern = " ", replace="_") %>%
+	 tolower()
+```
+
++ `substr()`
+
+```{r}
+substr("abcdef", 2, 4)
+```
+
+<br>
+
++ `str_extract()`: extract matching patterns from a string
++ `str_extract(string, pattern)`
+
+```{r}
+shopping_list <- c("apples x4", "bag of flour", "bag of sugar", "milk x2")
+
+str_extract(variable,"[0-9]{1,5}")] 
+```
+
+<br>
+
++ `str_pad()`: pad a string 
+
+<br>
+
++ `str_sub`: extract and replace rebstrings from a character vector
+
+```{r}
+x <- "some text in a string"
+str_sub(x,-6,-1)
+```
+
+<br>
+
++ `str_split`: solit up a string into pieces
+
+
+## Basic Statics Summary {#SummaryTable}
+
++ modelsummary
++ gt
+
+```{r}
+datasummary_skim(full_dt[,.(total_value_calculated, assessed_total_value, market_total_value, appraised_total_value, sale_amount)],
+	 title = "Quick overview of key variables in Full-data (all states)")
+
+eq1 <- as.formula(paste(paste0(weather_var, collapse = "+"), "nrdname * (Mean + SD)",  sep="~"))
+
+reg_data_new[,c("nrdname", weather_var, soil_var), with = FALSE] %>%
+	datasummary(
+		eq1,
+		 # pr_in+tmmn_in ~  nrdname * (Mean + SD),
+    data = .
+    )
+
+#- for row striping -#
+custom_theme <- function(x, ...) {
+    x %>% gt::opt_row_striping(row_striping = TRUE)
+}
+options("modelsummary_theme_gt" = custom_theme)
+```
+
+---
+
+# A list of useful functions
+
+## melt() {#melt}
++ wide- to long-format data
+
+```{r}
+DT.m1 = melt(DT, id.vars = c("family_id", "age_mother"),
+                measure.vars = c("dob_child1", "dob_child2", "dob_child3"))   
+
+melt(id.vars = "ID", variable.name = "day")
+```
+
++ **Note**: 
+	* measure.vars specify the set of columns we would like to collapse together.
+	* id.vars specifies the variables that we don't change
+	* By default, variable column is of type factor. Set variable.factor argument to FALSE if you’d like to return a character vector instead.
+
+
+## dcast() {#dcast}
++ long- to wide-format data 
+
+```{r}
+dcast(DT.m1, family_id + age_mother ~ child, value.var = "dob")
+```
+
++ **Note**:
+	* LHS represents the id vars 
+	* RHS the measure vars
+	* value.var denotes the column to be filled in with while casting to wide format
+	-> id vars ~ measure vars
+
+
+
+## formula()
+
+```{r}
+as.formula()
+
+eq1 <- as.formula(paste(paste0(weather_var, collapse = "+"), "nrdname * (Mean + SD)",  sep="~"))
+```
+
+## eval() {#eval}
+
+```{r}
+eval(parse(text=paste('data[,treat:=',treat_var,']',sep="")))
+```
+
+## lapply vs sapply
++ `lapply()` returns outputs as a list
++ `sapply()`returns outputs as a vector
+
+<br>
+
+Suppose you create a function that returns multiple object as a list. Then, after all iterations, you'll get a final results as a list that contains multiple object within it. If you want to retrieve one of them, `sapply` function is useful.
+
+```{r}
+sapply(all_results,'[',1)
+sapply(all_results,'[',2) %>% rbindlist()
+
+cf <- sapply(all_results,'[',1)
+tau_all <- sapply(all_results,'[',2) %>% rbindlist()
+vi_all <- sapply(all_results,'[',3) %>% rbindlist() %>% 
+	.[,variable:=factor(variable,levels=var_ls)] %>% 
+    dcast(variable~trt,value.var ='vi')
+```
+
+
+## download() {#Downlowd}
+
++ `download()` from `downloader` package
+
+```{r}
+download( url = , destfile = , mode = ‘web’ )
+```
+
+<br>
+
+
+## stringr {#stringr}
+
++ `str_detect()`
+	* Package "stringr"
+	* Vectorised over string and pattern.
+	* `str_detect(string, pattern, negate=FALSE)`
+
+```{r}
+tif_file_names <- list.files(path="./Data/HPA_sat_thickness_inputs" , pattern="*.tif", full.names=TRUE) %>% 
+  .[!str_detect(.,'tif.')]
+
+fruit <- c("apple", "banana", "pear", "pinapple")
+str_detect(fruit, "a")       #ans. [1] TRUE TRUE TRUE TRUE
+str_detect(fruit, "^a")      #ans. [1]  TRUE FALSE FALSE FALSE
+str_detect(fruit, "a$")      #ans. [1] FALSE  TRUE FALSE FALSE
+str_detect(fruit, "b")       #ans. [1] FALSE  TRUE FALSE FALSE
+str_detect(fruit, "[aeiou]") #ans. [1] TRUE TRUE TRUE TRUE
+```
+
++ `^` : now matches the start of each line
++ `$` : now matches the end of each line
++ `\A` : matches the start of the input
++ `\z` : matches the end of the input
++ `\Z` : matches the end of the input, but before the final line terminator, if exists
+
+
+
+## list.files() {#listfiles}
+
+produce charactervector of the names of files or directories in the named directory
+
+```{r}
+tif_file_names <- list.files(path="./Data/HPA_sat_thickness_inputs" , pattern="*.tif", full.names=TRUE) %>% 
+  .[!str_detect(.,'tif.')]
+```
+
+
+## While loop {#whileloop}
+
+A loop is a statement function that keeps running until a condition is satisfied.
+
++ usage: 
+
+```{r}
+while (condition){
+                Exp
+        }
+```
+
+For exampel: 
+
+```{r}
+total <- 0
+    number <- as.integer(readline(prompt="Please Enter any integer Value below 10:  "))
+
+    whiel(number <= 10) {
+    total = total + number
+    number = number + 1
+    }
+```
+
+
+## shift() {#shift}
+
+```{r}
+.[, tau_stepwise := yield_hat - shift(yield_hat), by = unique_cell_id]
+```
+
+
+
+
+
+
+
+

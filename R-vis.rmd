@@ -1,0 +1,95 @@
+---
+title: "R Function Cheat Sheet"
+author: "Shunkei Kakimoto"
+output:
+  html_document:
+    number_sections: yes
+    theme: flatly
+    toc_float: yes
+    toc: yes
+    toc_depth: 3
+geometry: margin=1in
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(here)
+
+here::i_am("Dropbox/R-project/R-functions/GitControlled/R-func-cheat-sheet.rmd")
+
+# opts_knit$set(root.dir = "")
+# opts_knit$set(root.dir = here())
+
+knitr::opts_chunk$set(
+  echo = TRUE,
+  cache = FALSE,
+  comment = NA,
+  message = FALSE,
+  warning = FALSE,
+  tidy = FALSE,
+  cache.lazy = FALSE,
+  #--- figure ---#
+  dpi = 400,
+  fig.width = 7.5,
+  fig.height = 5,
+  out.width = "750px",
+  out.height = "500px"
+)
+
+# /*===== Basic Packages  =====*/
+# /*---- Data Wrangling ----*/
+library(data.table)
+library(tidyverse)
+library(DescTools)
+library(maps)
+
+# /*---- Visualization ----*/
+library(RColorBrewer)
+library(patchwork)
+library(ggplot2)
+library(ggthemes)
+library(ggpubr)
+library(viridis)
+library(grid)
+library(gridExtra)
+library(GGally)
+
+# /*---- Model Summary ----*/
+library(stats)
+library(modelsummary)
+library(flextable)
+library(officer)
+library(officedown)
+library(gt)
+
+```
+
+# A list of useful functions
++ `coord_equal`
++ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
