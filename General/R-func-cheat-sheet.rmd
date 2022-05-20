@@ -15,7 +15,7 @@ geometry: margin=1in
 library(knitr)
 library(here)
 
-here::i_am("Dropbox/R-project/R-functions/GitControlled/R-func-cheat-sheet.rmd")
+here::i_am("Dropbox/R-project/R-functions/GitControlled/General/R-func-cheat-sheet.rmd")
 
 # opts_knit$set(root.dir = "")
 # opts_knit$set(root.dir = here())
@@ -72,7 +72,8 @@ library(gt)
 + [Data Table Operation](#data_table)
 + [Manage strings](#ManageStrings)
 + [Basic Statics Summary](#SummaryTable)
-
++ [Check whether a column has NA values or not](#CheckNA)
++ [Find the percentage of NA](#FindNA)
 
 ## A list of useful functions
 
@@ -106,6 +107,8 @@ library(gt)
 	* <span style="color:gren">str_pad(string, width, side = c("left", "right", "both"), pad = " ")</span>
 
 + <span style="color:green">**fread()**</span>: when you read a large file (ex. .txt)
+
++ [**intersect()**](#intersect)
 
 <br>
 
@@ -149,6 +152,8 @@ library(gt)
 # Topics
 
 ## Data Table Operation {#data_table}
+
+### Basic
 + `DT[[ ]]`
 	* substruct single column from data.table as a vector using the name of the column
 
@@ -172,13 +177,6 @@ for each joint_y of dt1, finds joint_y of dt2 that is closest to joint_y of dt1 
 
 <br>
 
-+ If you want to select columns with a sequence of coolumn names
-
-```{r}
-report_res_allML[,select(.SD, Method, Model, Min.:Max., cumulative_pi_loss)]
-```
-
-
 ```{r}
 CJ();
 N <- 1000
@@ -200,6 +198,27 @@ reg_data <-
     by = .(id, t)
   ]
 ```
+
+### Select columns using a sequence of column  names
+
++ If you want to select columns with a sequence of column names
+
+```{r}
+report_res_allML[,select(.SD, Method, Model, Min.:Max., cumulative_pi_loss)]
+```
+
+
+### Calculate row-wise summation
+
+```{r}
+check_comp_LR <- 
+  LR_5mi_y_owner[,.(nrd_owner_name, year)] %>%
+  .[,index := 1] %>%
+  dcast(nrd_owner_name ~ year, value.var = "index") %>%
+  imputeTS::na_replace(fill = 0) %>%
+  .[, num_y := rowSums(.SD), by = nrd_owner_name]
+```
+
 
 <br>
 
@@ -305,6 +324,21 @@ custom_theme <- function(x, ...) {
 options("modelsummary_theme_gt" = custom_theme)
 ```
 
+
+## Check whether a column has NA values or not {#CheckNA}
+
+```{r}
+sapply(temp, function(x) any(is.na(x)))
+```
+
+
+## Find the percentage of NA {#FindNA}
+
+```{r}
+sapply(data, function(x) sum(is.na(x)) / nrow(property_basic_meta))
+```
+
+
 ---
 
 # A list of useful functions
@@ -338,6 +372,16 @@ dcast(DT.m1, family_id + age_mother ~ child, value.var = "dob")
 	* value.var denotes the column to be filled in with while casting to wide format
 	-> id vars ~ measure vars
 
+
+## intersect() {#intersect}
++ Calculates the intersection of subsets of a probability space. Comparisons are made row-wise, so that in the data frame case, intersect(A,B) is a data frame with those rows that are both in A and in B.
+
+```{r}
+S <- cards()
+A <- subset(S, suit == "Heart")
+B <- subset(S, rank == "A" )
+intersect(A, B)
+```
 
 
 ## formula()

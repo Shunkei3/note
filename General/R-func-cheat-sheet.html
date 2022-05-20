@@ -1543,6 +1543,9 @@ folder</a></li>
 <li><a href="#data_table">Data Table Operation</a></li>
 <li><a href="#ManageStrings">Manage strings</a></li>
 <li><a href="#SummaryTable">Basic Statics Summary</a></li>
+<li><a href="#CheckNA">Check whether a column has NA values or
+not</a></li>
+<li><a href="#FindNA">Find the percentage of NA</a></li>
 </ul>
 </div>
 <div id="a-list-of-useful-functions" class="section level2" number="1.2">
@@ -1592,6 +1595,7 @@ is useful when using lapply function</p></li>
 </ul></li>
 <li><p><span style="color:green"><strong>fread()</strong></span>: when
 you read a large file (ex. .txt)</p></li>
+<li><p><a href="#intersect"><strong>intersect()</strong></a></p></li>
 </ul>
 <p><br></p>
 </div>
@@ -1650,6 +1654,8 @@ named directory</li>
 <div id="data_table" class="section level2" number="2.1">
 <h2><span class="header-section-number">2.1</span> Data Table
 Operation</h2>
+<div id="basic" class="section level3" number="2.1.1">
+<h3><span class="header-section-number">2.1.1</span> Basic</h3>
 <ul>
 <li><p><code>DT[[ ]]</code></p>
 <ul>
@@ -1680,10 +1686,6 @@ dt2[dt1, roll=TRUE, on=“joint_y”]</code></pre>
 joint_y of dt1 with the condition joint_y of dt1 &gt;= joint_y of
 dt2</p>
 <p><br></p>
-<ul>
-<li>If you want to select columns with a sequence of coolumn names</li>
-</ul>
-<pre class="r"><code>report_res_allML[,select(.SD, Method, Model, Min.:Max., cumulative_pi_loss)]</code></pre>
 <pre class="r"><code>CJ();
 N &lt;- 1000
 T &lt;- 10
@@ -1703,7 +1705,26 @@ reg_data &lt;-
     ), 
     by = .(id, t)
   ]</code></pre>
+</div>
+<div id="select-columns-using-a-sequence-of-column-names" class="section level3" number="2.1.2">
+<h3><span class="header-section-number">2.1.2</span> Select columns
+using a sequence of column names</h3>
+<ul>
+<li>If you want to select columns with a sequence of column names</li>
+</ul>
+<pre class="r"><code>report_res_allML[,select(.SD, Method, Model, Min.:Max., cumulative_pi_loss)]</code></pre>
+</div>
+<div id="calculate-row-wise-summation" class="section level3" number="2.1.3">
+<h3><span class="header-section-number">2.1.3</span> Calculate row-wise
+summation</h3>
+<pre class="r"><code>check_comp_LR &lt;- 
+  LR_5mi_y_owner[,.(nrd_owner_name, year)] %&gt;%
+  .[,index := 1] %&gt;%
+  dcast(nrd_owner_name ~ year, value.var = &quot;index&quot;) %&gt;%
+  imputeTS::na_replace(fill = 0) %&gt;%
+  .[, num_y := rowSums(.SD), by = nrd_owner_name]</code></pre>
 <p><br></p>
+</div>
 </div>
 <div id="SourceFunction" class="section level2" number="2.2">
 <h2><span class="header-section-number">2.2</span> Source all the
@@ -1797,6 +1818,16 @@ custom_theme &lt;- function(x, ...) {
     x %&gt;% gt::opt_row_striping(row_striping = TRUE)
 }
 options(&quot;modelsummary_theme_gt&quot; = custom_theme)</code></pre>
+</div>
+<div id="CheckNA" class="section level2" number="2.5">
+<h2><span class="header-section-number">2.5</span> Check whether a
+column has NA values or not</h2>
+<pre class="r"><code>sapply(temp, function(x) any(is.na(x)))</code></pre>
+</div>
+<div id="FindNA" class="section level2" number="2.6">
+<h2><span class="header-section-number">2.6</span> Find the percentage
+of NA</h2>
+<pre class="r"><code>sapply(data, function(x) sum(is.na(x)) / nrow(property_basic_meta))</code></pre>
 <hr />
 </div>
 </div>
@@ -1840,18 +1871,31 @@ wide format -&gt; id vars ~ measure vars</li>
 </ul></li>
 </ul>
 </div>
-<div id="formula" class="section level2" number="3.3">
-<h2><span class="header-section-number">3.3</span> formula()</h2>
+<div id="intersect" class="section level2" number="3.3">
+<h2><span class="header-section-number">3.3</span> intersect()</h2>
+<ul>
+<li>Calculates the intersection of subsets of a probability space.
+Comparisons are made row-wise, so that in the data frame case,
+intersect(A,B) is a data frame with those rows that are both in A and in
+B.</li>
+</ul>
+<pre class="r"><code>S &lt;- cards()
+A &lt;- subset(S, suit == &quot;Heart&quot;)
+B &lt;- subset(S, rank == &quot;A&quot; )
+intersect(A, B)</code></pre>
+</div>
+<div id="formula" class="section level2" number="3.4">
+<h2><span class="header-section-number">3.4</span> formula()</h2>
 <pre class="r"><code>as.formula()
 
 eq1 &lt;- as.formula(paste(paste0(weather_var, collapse = &quot;+&quot;), &quot;nrdname * (Mean + SD)&quot;,  sep=&quot;~&quot;))</code></pre>
 </div>
-<div id="eval" class="section level2" number="3.4">
-<h2><span class="header-section-number">3.4</span> eval()</h2>
+<div id="eval" class="section level2" number="3.5">
+<h2><span class="header-section-number">3.5</span> eval()</h2>
 <pre class="r"><code>eval(parse(text=paste(&#39;data[,treat:=&#39;,treat_var,&#39;]&#39;,sep=&quot;&quot;)))</code></pre>
 </div>
-<div id="lapply-vs-sapply" class="section level2" number="3.5">
-<h2><span class="header-section-number">3.5</span> lapply vs sapply</h2>
+<div id="lapply-vs-sapply" class="section level2" number="3.6">
+<h2><span class="header-section-number">3.6</span> lapply vs sapply</h2>
 <ul>
 <li><code>lapply()</code> returns outputs as a list</li>
 <li><code>sapply()</code>returns outputs as a vector</li>
@@ -1870,16 +1914,16 @@ vi_all &lt;- sapply(all_results,&#39;[&#39;,3) %&gt;% rbindlist() %&gt;%
     .[,variable:=factor(variable,levels=var_ls)] %&gt;% 
     dcast(variable~trt,value.var =&#39;vi&#39;)</code></pre>
 </div>
-<div id="Downlowd" class="section level2" number="3.6">
-<h2><span class="header-section-number">3.6</span> download()</h2>
+<div id="Downlowd" class="section level2" number="3.7">
+<h2><span class="header-section-number">3.7</span> download()</h2>
 <ul>
 <li><code>download()</code> from <code>downloader</code> package</li>
 </ul>
 <pre class="r"><code>download( url = , destfile = , mode = ‘web’ )</code></pre>
 <p><br></p>
 </div>
-<div id="stringr" class="section level2" number="3.7">
-<h2><span class="header-section-number">3.7</span> stringr</h2>
+<div id="stringr" class="section level2" number="3.8">
+<h2><span class="header-section-number">3.8</span> stringr</h2>
 <ul>
 <li><code>str_detect()</code>
 <ul>
@@ -1906,15 +1950,15 @@ str_detect(fruit, &quot;[aeiou]&quot;) #ans. [1] TRUE TRUE TRUE TRUE</code></pre
 line terminator, if exists</li>
 </ul>
 </div>
-<div id="listfiles" class="section level2" number="3.8">
-<h2><span class="header-section-number">3.8</span> list.files()</h2>
+<div id="listfiles" class="section level2" number="3.9">
+<h2><span class="header-section-number">3.9</span> list.files()</h2>
 <p>produce charactervector of the names of files or directories in the
 named directory</p>
 <pre class="r"><code>tif_file_names &lt;- list.files(path=&quot;./Data/HPA_sat_thickness_inputs&quot; , pattern=&quot;*.tif&quot;, full.names=TRUE) %&gt;% 
   .[!str_detect(.,&#39;tif.&#39;)]</code></pre>
 </div>
-<div id="whileloop" class="section level2" number="3.9">
-<h2><span class="header-section-number">3.9</span> While loop</h2>
+<div id="whileloop" class="section level2" number="3.10">
+<h2><span class="header-section-number">3.10</span> While loop</h2>
 <p>A loop is a statement function that keeps running until a condition
 is satisfied.</p>
 <ul>
@@ -1932,8 +1976,8 @@ is satisfied.</p>
     number = number + 1
     }</code></pre>
 </div>
-<div id="shift" class="section level2" number="3.10">
-<h2><span class="header-section-number">3.10</span> shift()</h2>
+<div id="shift" class="section level2" number="3.11">
+<h2><span class="header-section-number">3.11</span> shift()</h2>
 <pre class="r"><code>.[, tau_stepwise := yield_hat - shift(yield_hat), by = unique_cell_id]</code></pre>
 </div>
 </div>

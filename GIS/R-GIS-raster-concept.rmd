@@ -1,0 +1,187 @@
+---
+title: "Functions for GIS operation"
+author: "Shunkei Kakimoto"
+output:
+  html_document:
+    number_sections: yes
+    theme: flatly
+    toc_float: yes
+    toc: yes
+    toc_depth: 3
+geometry: margin=1in
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(here)
+
+here::i_am("Dropbox/R-project/R-functions/GitControlled/GIS/R-GIS-raster-concept.rmd")
+
+# opts_knit$set(root.dir = "")
+
+
+knitr::opts_chunk$set(
+  echo = FALSE,
+  eval=FALSE,
+  cache = FALSE,
+  comment = NA,
+  message = FALSE,
+  warning = FALSE,
+  tidy = FALSE,
+  cache.lazy = FALSE,
+  #--- figure ---#
+  dpi = 400,
+  fig.width = 7.5,
+  fig.height = 5,
+  out.width = "750px",
+  out.height = "500px"
+)
+
+# /*===== Basic Packages  =====*/
+# /*---- Data Wrangling ----*/
+library(data.table)
+library(tidyverse)
+library(DescTools)
+library(maps)
+
+# /*---- Visualization ----*/
+library(RColorBrewer)
+library(patchwork)
+library(ggplot2)
+library(ggthemes)
+library(ggpubr)
+library(viridis)
+library(grid)
+library(gridExtra)
+library(GGally)
+
+# /*---- Model Summary ----*/
+library(stats)
+library(modelsummary)
+library(flextable)
+library(officer)
+library(officedown)
+library(gt)
+
+```
+
+
+# Raster
+
++ `raster` package
++ `terra` package
++ `stars` package
+	* work with raster data with the temporal dimension (e.g., PRISM, Daymet)
+	* It also allows you to apply dplyr verbs for data wrangling
+
+
+## `raster` package
+
+has multiple object classes depending on a single or multiple raster objects. 
+
++ `RasterLayer` class
+	* consists of only one layer, meaning that only a single variable is associated with the cells
+
++ `RasterStack` class
+	* `raster::stack()`
+	* tack multiple raster layers
+
++ `RasterBrick` class
+	* `raster::brick()`
+
+```{r}
+#--- stack the two ---#
+IA_cdl_brick <- brick(IA_cdl_stack)
+
+#--- or this works as well ---#
+IA_cdl_brick <- brick(IA_cdl_2015, IA_cdl_2016)	
+```	
+
+
+## `terra` package
+
+### Basic
+
+has only one object class for raster data regardless of one-layer and multi-layer rasters.
+
++ `SpatRaster` class
+	* `terra::rast()`
+    -  this can convert a Raster class to a SpatRaster class object
+
+If you want to stack multiple multiple single-layer `SpatRaster` objects, you can use `c()` like below.
+
+```{r}
+#--- create a single-layer SpatRaster ---#
+IA_cdl_2015_sr <- rast(IA_cdl_2015)
+IA_cdl_2016_sr <- rast(IA_cdl_2016)
+
+#--- concatenate ---#
+IA_cdl_ml_sr <- c(IA_cdl_2015_sr, IA_cdl_2016_sr)
+```
+
+Or you can import two single-layer raster datasets to create a two-layer `SpatRaster` object at the same time. 
++ NOTE: this only works because the two datasets have the identical spatial extent and resolution.
+
+```{r}
+#--- the list of path to the files ---#
+files_list <- c("Data/IA_cdl_2015.tif", "Data/IA_cdl_2016.tif")
+
+#--- read the two at the same time ---#
+multi_layer_sr <- rast(files_list)
+```
+
+Use `terra::writeRaster()` to save `SpatRaster` object.
+
+```{r}
+terra::writeRaster(
+	IA_cdl_2015_sr, 
+	"Data/IA_cdl_stack.tif", 
+	filetype = "GTiff", 
+	overwrite = TRUE)	
+```	
+
+### Extract information from raster data object
+
++ `terra` package has its own class for vector data, called `SpatVector`. Whenever you use `SpatRaster` object with `sf` object, you need to convert the `sf` object to `SpatVector` object. 
+	* `SpatVector` object
+		- `terra::vect()`
+
+
++ `terra::crs()` to get CRS
+
++ `IA_cdl_stack_sr[[2]]` to subset a specific laysers in a multi-layer raster object 
+
++ ` terra::values()` to get cell values
+
+
++ Turning a raster object into a `data.frame` to create maps with `ggplot()`
+	* ` as.data.frame(IA_cdl_stack_sr, xy = TRUE)`
+
+```{r}
+#--- converting to a data.frame ---#
+IA_cdl_df <- as.data.frame(IA_cdl_stack_sr, xy = TRUE) # this works with Raster* objects as well
+#--- take a look ---#
+head(IA_cdl_df)
+```
+
+<br>
+
++ `terra::crop()`
+
+```{r}
+crop(raster object, geographic extent)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+

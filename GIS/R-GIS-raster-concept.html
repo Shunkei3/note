@@ -12,7 +12,7 @@
 <meta name="author" content="Shunkei Kakimoto" />
 
 
-<title>R Function Cheat Sheet</title>
+<title>Functions for GIS operation</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -1527,251 +1527,99 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">R Function Cheat Sheet</h1>
+<h1 class="title toc-ignore">Functions for GIS operation</h1>
 <h4 class="author">Shunkei Kakimoto</h4>
 
 </div>
 
 
-<div id="contents" class="section level1" number="1">
-<h1><span class="header-section-number">1</span> Contents</h1>
-<div id="topics" class="section level2" number="1.1">
-<h2><span class="header-section-number">1.1</span> Topics</h2>
+<div id="raster" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> Raster</h1>
 <ul>
-<li><a href="#tmap"><strong>tmap package</strong></a></li>
-<li><a href="#CorrelationMap"><strong>Descriptive Statistical:
-ggpairs()</strong></a></li>
-<li><a href="#theme"><strong>theme() of ggplot2</strong></a></li>
-<li><a href="#ChangeLegendName"><strong>Change the legend
-name</strong></a></li>
-</ul>
-</div>
-<div id="useful-functions" class="section level2" number="1.2">
-<h2><span class="header-section-number">1.2</span> Useful Functions</h2>
+<li><code>raster</code> package</li>
+<li><code>terra</code> package</li>
+<li><code>stars</code> package
 <ul>
-<li><p><a href="#coord_equal"><strong>coord_equal()</strong></a></p></li>
-<li><p><a href="#scale_fill_viridis_c"><strong>scale_fill_viridis_c()</strong></a></p>
-<ul>
-<li>make the figure color differentiate more</li>
-<li>you can also change the legend name with scale_fill_viridis_c()</li>
-</ul></li>
-<li><p><a href="#theme_void"><strong>theme_void()</strong></a></p></li>
-<li><p><a href="#theme_bw"><strong>theme_bw()</strong></a></p></li>
-<li><p><a href="#lab"><strong>lab()</strong></a></p>
-<ul>
-<li>modify the legend</li>
-</ul></li>
-<li><p><a href="#scale_fill_distiller"><strong>scale_fill_distiller(pattern =
-“Green”, direction =1)</strong></a></p>
-<ul>
-<li>change how the appearance of color bar</li>
-</ul></li>
-<li><p><a href="#AdjustScaleAxis"><strong>facet_grid(type~variable,scale=‘free’)</strong></a></p>
-<ul>
-<li>adjust the scale in the axis of the figures</li>
-</ul></li>
-<li><p><a href="#RemoveLegendTitle"><strong>theme(legend. title =
-element_blank())</strong></a></p>
-<ul>
-<li>remove legend title</li>
-</ul></li>
-<li><p><a href="#HideLegend"><strong>theme(legend.position =
-“none”)</strong></a></p>
-<ul>
-<li>hide the entire legend to crerate ggplot with no legend</li>
-</ul></li>
-<li><p><a href="#Transparent"><strong>theme(panel.grid =
-element_line(color=‘transparent’))</strong></a></p>
-<ul>
-<li>change the color of grid lines</li>
+<li>work with raster data with the temporal dimension (e.g., PRISM,
+Daymet)</li>
+<li>It also allows you to apply dplyr verbs for data wrangling</li>
 </ul></li>
 </ul>
-<hr />
-</div>
-</div>
-<div id="topics-1" class="section level1" number="2">
-<h1><span class="header-section-number">2</span> Topics</h1>
-<div id="tmap" class="section level2" number="2.1">
-<h2><span class="header-section-number">2.1</span> tmap</h2>
+<div id="raster-package" class="section level2" number="1.1">
+<h2><span class="header-section-number">1.1</span> <code>raster</code>
+package</h2>
+<p>has multiple object classes depending on a single or multiple raster
+objects.</p>
 <ul>
-<li><code>tm_shape( )</code></li>
+<li><code>RasterLayer</code> class
+<ul>
+<li>consists of only one layer, meaning that only a single variable is
+associated with the cells</li>
+</ul></li>
+<li><code>RasterStack</code> class
+<ul>
+<li><code>raster::stack()</code></li>
+<li>tack multiple raster layers</li>
+</ul></li>
+<li><code>RasterBrick</code> class
+<ul>
+<li><code>raster::brick()</code></li>
+</ul></li>
 </ul>
-<pre class="r"><code>left_join(field,data[,.(unique_cell_id,opt_N)],by=&#39;unique_cell_id&#39;) %&gt;%
-    select(opt_N) %&gt;%
-    tm_shape() +
-      tm_fill(col = &quot;opt_N&quot;)</code></pre>
+</div>
+<div id="terra-package" class="section level2" number="1.2">
+<h2><span class="header-section-number">1.2</span> <code>terra</code>
+package</h2>
+<div id="basic" class="section level3" number="1.2.1">
+<h3><span class="header-section-number">1.2.1</span> Basic</h3>
+<p>has only one object class for raster data regardless of one-layer and
+multi-layer rasters.</p>
+<ul>
+<li><code>SpatRaster</code> class
+<ul>
+<li><code>terra::rast()</code></li>
+<li>this can convert a Raster class to a SpatRaster class object</li>
+</ul></li>
+</ul>
+<p>If you want to stack multiple multiple single-layer
+<code>SpatRaster</code> objects, you can use <code>c()</code> like
+below.</p>
+<p>Or you can import two single-layer raster datasets to create a
+two-layer <code>SpatRaster</code> object at the same time. + NOTE: this
+only works because the two datasets have the identical spatial extent
+and resolution.</p>
+<p>Use <code>terra::writeRaster()</code> to save <code>SpatRaster</code>
+object.</p>
+</div>
+<div id="extract-information-from-raster-data-object" class="section level3" number="1.2.2">
+<h3><span class="header-section-number">1.2.2</span> Extract information
+from raster data object</h3>
+<ul>
+<li><p><code>terra</code> package has its own class for vector data,
+called <code>SpatVector</code>. Whenever you use <code>SpatRaster</code>
+object with <code>sf</code> object, you need to convert the
+<code>sf</code> object to <code>SpatVector</code> object.</p>
+<ul>
+<li><code>SpatVector</code> object
+<ul>
+<li><code>terra::vect()</code></li>
+</ul></li>
+</ul></li>
+<li><p><code>terra::crs()</code> to get CRS</p></li>
+<li><p><code>IA_cdl_stack_sr[[2]]</code> to subset a specific laysers in
+a multi-layer raster object</p></li>
+<li><p><code>terra::values()</code> to get cell values</p></li>
+<li><p>Turning a raster object into a <code>data.frame</code> to create
+maps with <code>ggplot()</code></p>
+<ul>
+<li><code>as.data.frame(IA_cdl_stack_sr, xy = TRUE)</code></li>
+</ul></li>
+</ul>
 <p><br></p>
-<pre class="r"><code>tm_shape(bavaria) +
-  tm_fill()
-
-tm_shape(bavaria) +
-  tm_borders()
-
-tm_shape(bavaria) +
-  tm_polygons()</code></pre>
-</div>
-<div id="CorrelationMap" class="section level2" number="2.2">
-<h2><span class="header-section-number">2.2</span> Descriptive
-Statistical: ggpairs()</h2>
-<pre class="r"><code>ggpairs()
-
-data(diamonds, package=&quot;ggplot2&quot;)
-diamonds.samp &lt;- diamonds[sample(1:dim(diamonds)[1], 200), ]
-
-# Custom Example  ( almost directly from help page)
-pm &lt;- ggpairs(
- diamonds.samp[, 1:5],
- mapping = ggplot2::aes(color = cut),
- upper = list(continuous = wrap(&quot;density&quot;, alpha = 0.5), combo = &quot;box&quot;),
- lower = list(continuous = wrap(&quot;points&quot;, alpha = 0.3,    size=0.1), 
-              combo = wrap(&quot;dot&quot;, alpha = 0.4,            size=0.2) ),
- title = &quot;Diamonds&quot;
-)</code></pre>
-</div>
-<div id="theme" class="section level2" number="2.3">
-<h2><span class="header-section-number">2.3</span> theme() of
-ggplot2</h2>
 <ul>
-<li>tweak a map to make it much nicer look</li>
+<li><code>terra::crop()</code></li>
 </ul>
-<pre class="r"><code>g_base + theme(axis.text = element_blank())     
-
-theme_for_map &lt;- theme(
-  axis.ticks = element_blank(),
-  axis.text= element_blank(), 
-  axis.line = element_blank(),
-  panel.border = element_blank(),
-  panel.grid = element_line(color=&#39;transparent&#39;),
-  panel.background = element_blank(),
-  plot.background = element_rect(fill = &quot;transparent&quot;,color=&#39;transparent&#39;)
-)
-
-g_base + theme_for_map</code></pre>
-<div id="change-legend-position-1" class="section level3" number="2.3.1">
-<h3><span class="header-section-number">2.3.1</span> Change legend
-position (1)</h3>
-<pre class="r"><code>g_legend + 
-    scale_fill_viridis_c() + 
-    labs(fill = &quot;Groundwater pumping (acre-feet)&quot;) +
-    theme(legend.position = &quot;bottom&quot;)</code></pre>
 </div>
-<div id="change-legend-position-2" class="section level3" number="2.3.2">
-<h3><span class="header-section-number">2.3.2</span> Change legend
-position (2)</h3>
-<ul>
-<li>have the legend title on top of the color bar with guides()</li>
-</ul>
-<pre class="r"><code>g_legend + 
-    scale_fill_viridis_c() + 
-    labs(fill = &quot;Groundwater pumping (acre-feet)&quot;) +
-    theme(legend.position = &quot;bottom&quot;) +
-    guides(fill = guide_colorbar (title.position=&quot;top&quot;))</code></pre>
-</div>
-<div id="elongate-the-color-bar-and-make-the-legend-thinner" class="section level3" number="2.3.3">
-<h3><span class="header-section-number">2.3.3</span> Elongate the color
-bar and make the legend thinner</h3>
-<p>with <code>legend.key.width =</code> option and
-<code>legend.key.height=</code> for <code>theme()</code></p>
-<pre class="r"><code>g_legend + 
-    scale_fill_viridis_c() + 
-    labs(fill = &quot;Groundwater pumping (acre-feet)&quot;) +
-    theme(
-        legend.position = &quot;bottom&quot;,
-        #--- NEW LINES HERE!! ---#
-        legend.key.height = unit(0.5, &quot;cm&quot;),
-        legend.key.width = unit(2, &quot;cm&quot;)
-    ) +
-    guides(fill = guide_colorbar(title.position=&quot;top&quot;))</code></pre>
-<p><br></p>
-<p><strong>In the case of discrete values, use
-<code>guide_legend()</code> in the place of <code>guide_colorbar</code>
-of <code>guide()</code> function</strong></p>
-<pre class="r"><code>g_legend_2 &lt;- ggplot(data = gw_Stevens) +   
-    geom_sf(aes(color = af_used_cat), size = 2) +
-    scale_color_viridis(discrete = TRUE, option = &quot;C&quot;) +
-    labs(color = &quot;Groundwater pumping (acre-feet)&quot;)  +
-    theme_void() +
-    theme(legend.position = &quot;bottom&quot;) 
-
-g_legend_2 +
-    guides(
-        color = guide_legend(title.position=&quot;top&quot;) 
-    )</code></pre>
-</div>
-</div>
-<div id="ChangeLegendName" class="section level2" number="2.4">
-<h2><span class="header-section-number">2.4</span> Change the legend
-name</h2>
-<ul>
-<li>you can change the legend name with
-<code>scale_fill_viridis_c()</code></li>
-<li>Or, use <code>labs()</code></li>
-</ul>
-<pre class="r"><code>g_legend +
-    scale_fill_viridis_c(name = &quot;Groundwater pumping (acre-feet)&quot;)  
-
-g_legend +
-    scale_fill_viridis_c() + 
-    labs(fill = &quot;Groundwater pumping (acre-feet)&quot;) </code></pre>
-<hr />
-</div>
-</div>
-<div id="useful-functions-1" class="section level1" number="3">
-<h1><span class="header-section-number">3</span> Useful Functions</h1>
-<div id="lab" class="section level2" number="3.1">
-<h2><span class="header-section-number">3.1</span> lab</h2>
-<pre class="r"><code>labs(fill = &quot;Groundwater pumping (acre-feet)&quot;)
-labs(fill = “Yield level \n (kg/ha)”</code></pre>
-</div>
-<div id="theme" class="section level2" number="3.2">
-<h2><span class="header-section-number">3.2</span> theme</h2>
-<pre class="r"><code>theme(panel.grid = element_line(color=&quot;transparent&quot;),  )
-
-theme(legend.position = &quot;bottom&quot;)
-
-theme(
-  legend.position = &quot;bottom&quot;,
-  #--- change the size of the legend ---#
-  legend.key.height = unit(0.5, &quot;cm&quot;),
-  legend.key.width = unit(2, &quot;cm&quot;)
-  )</code></pre>
-</div>
-<div id="AdjustScaleAxis" class="section level2" number="3.3">
-<h2><span class="header-section-number">3.3</span>
-facet_grid(type~variable,scale=‘free’)</h2>
-<pre class="r"><code>g_impact_viz &lt;- ggplot() +
-    geom_line(data=impact_data, aes(y=tau_hat,x=value)) +
-    geom_ribbon(data=impact_data,
-      aes(
-      #- 95% CI: lower bound -#
-        ymin=tau_hat-1.96*tau_hat_se,
-        #- 95% CI: upper bound -#
-        ymax=tau_hat+1.96*tau_hat_se,
-        x=value
-      ),
-      alpha=0.4
-    ) +
-    geom_histogram(data=data_dist_viz,aes(x=value),color=&#39;black&#39;,fill=&#39;white&#39;) +
-    facet_grid(type~variable,scale=&#39;free&#39;) +
-    ylab(&#39;&#39;) +
-    xlab(&#39;&#39;)</code></pre>
-</div>
-<div id="Transparent" class="section level2" number="3.4">
-<h2><span class="header-section-number">3.4</span> theme(panel.grid =
-element_line(color=‘transparent’))</h2>
-<pre class="r"><code>ggplot() +  
-    geom_sf(data = gw_by_county, aes(fill = af_used)) +
-    facet_grid(year ~ .) + 
-    theme_bw() +
-    theme(
-        panel.grid = element_line(color=&#39;transparent&#39;))
-    )</code></pre>
-</div>
-<div id="scale_fill_viridis_c" class="section level2" number="3.5">
-<h2><span class="header-section-number">3.5</span>
-scale_fill_viridis_c()</h2>
-<pre class="r"><code>g_legend +
-    scale_fill_viridis_c(name = &quot;Groundwater pumping (acre-feet)&quot;)  </code></pre>
 </div>
 </div>
 

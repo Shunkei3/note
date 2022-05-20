@@ -15,13 +15,14 @@ geometry: margin=1in
 library(knitr)
 library(here)
 
-here::i_am("Dropbox/R-project/R-functions/GitControlled/R-func-cheat-sheet.rmd")
+here::i_am("Dropbox/R-project/R-functions/GitControlled/vis/R-vis.rmd")
 
 # opts_knit$set(root.dir = "")
 # opts_knit$set(root.dir = here())
 
 knitr::opts_chunk$set(
   echo = TRUE,
+  eval = FALSE,
   cache = FALSE,
   comment = NA,
   message = FALSE,
@@ -64,22 +65,253 @@ library(gt)
 
 ```
 
-# A list of useful functions
-+ `coord_equal`
-+ 
+# Contents
+
+## Topics
++ [**tmap package**](#tmap)
++ [**Descriptive Statistical: ggpairs()**](#CorrelationMap)
++ [**theme() of ggplot2**](#theme)
++ [**Change the legend name**](#ChangeLegendName)
+
+
+## Useful Functions
+
++ [**coord_equal()**](#coord_equal)
+
++ [**scale_fill_viridis_c()**](#scale_fill_viridis_c)
+  * make the figure color differentiate more
+  * you can also change the legend name with scale_fill_viridis_c()
+
++ [**theme_void()**](#theme_void)
+
++ [**theme_bw()**](#theme_bw)
+
++ [**lab()**](#lab)
+  * modify the legend 
+
++ [**scale_fill_distiller(pattern = “Green”, direction =1)**](#scale_fill_distiller)
+  * change how the appearance of color bar
+  
++ [**facet_grid(type~variable,scale='free’)**](#AdjustScaleAxis)
+  * adjust the scale in the axis of the figures
+
++ [**theme(legend. title = element_blank())**](#RemoveLegendTitle)
+  * remove legend title
+
++ [**theme(legend.position = “none”)**](#HideLegend)
+  * hide the entire legend to crerate ggplot with no legend
+
++ [**theme(panel.grid = element_line(color='transparent'))**](#Transparent)
+  * change the color of grid lines
+
+---
+
+
+# Topics
+
+## tmap {#tmap}
+
++ `tm_shape( ) `
+
+```{r}
+left_join(field,data[,.(unique_cell_id,opt_N)],by='unique_cell_id') %>%
+    select(opt_N) %>%
+    tm_shape() +
+      tm_fill(col = "opt_N")
+```
+
+<br>
+
+```{r}
+tm_shape(bavaria) +
+  tm_fill()
+
+tm_shape(bavaria) +
+  tm_borders()
+
+tm_shape(bavaria) +
+  tm_polygons()
+```
+
+## Descriptive Statistical: ggpairs() {#CorrelationMap}
+
+```{r}
+ggpairs()
+
+data(diamonds, package="ggplot2")
+diamonds.samp <- diamonds[sample(1:dim(diamonds)[1], 200), ]
+
+# Custom Example  ( almost directly from help page)
+pm <- ggpairs(
+ diamonds.samp[, 1:5],
+ mapping = ggplot2::aes(color = cut),
+ upper = list(continuous = wrap("density", alpha = 0.5), combo = "box"),
+ lower = list(continuous = wrap("points", alpha = 0.3,    size=0.1), 
+              combo = wrap("dot", alpha = 0.4,            size=0.2) ),
+ title = "Diamonds"
+)
+```
+
+## theme() of ggplot2 {#theme}
+
++ tweak a map to make it much nicer look 
+
+```{r}
+g_base + theme(axis.text = element_blank())     
+
+theme_for_map <- theme(
+  axis.ticks = element_blank(),
+  axis.text= element_blank(), 
+  axis.line = element_blank(),
+  panel.border = element_blank(),
+  panel.grid = element_line(color='transparent'),
+  panel.background = element_blank(),
+  plot.background = element_rect(fill = "transparent",color='transparent')
+)
+
+g_base + theme_for_map
+```
+
+### Change legend position (1)
+
+```{r}
+g_legend + 
+    scale_fill_viridis_c() + 
+    labs(fill = "Groundwater pumping (acre-feet)") +
+    theme(legend.position = "bottom")
+```
+
+### Change legend position (2)
++ have the legend title on top of the color bar with guides()
+
+```{r}
+g_legend + 
+    scale_fill_viridis_c() + 
+    labs(fill = "Groundwater pumping (acre-feet)") +
+    theme(legend.position = "bottom") +
+    guides(fill = guide_colorbar (title.position="top"))
+```
+
+### Elongate the color bar and make the legend thinner
+
+with `legend.key.width =` option and `legend.key.height=` for `theme()`
+
+```{r}
+g_legend + 
+    scale_fill_viridis_c() + 
+    labs(fill = "Groundwater pumping (acre-feet)") +
+    theme(
+        legend.position = "bottom",
+        #--- NEW LINES HERE!! ---#
+        legend.key.height = unit(0.5, "cm"),
+        legend.key.width = unit(2, "cm")
+    ) +
+    guides(fill = guide_colorbar(title.position="top"))
+```
+
+<br>
+
+**In the case of discrete values, use `guide_legend()` in the place of `guide_colorbar` of `guide()` function**
+
+```{r}
+g_legend_2 <- ggplot(data = gw_Stevens) +   
+    geom_sf(aes(color = af_used_cat), size = 2) +
+    scale_color_viridis(discrete = TRUE, option = "C") +
+    labs(color = "Groundwater pumping (acre-feet)")  +
+    theme_void() +
+    theme(legend.position = "bottom") 
+
+g_legend_2 +
+    guides(
+        color = guide_legend(title.position="top") 
+    )
+```
+
+
+## Change the legend name {#ChangeLegendName}
+
++ you can change the legend name with `scale_fill_viridis_c()`
++ Or, use `labs()`
+
+```{r}
+g_legend +
+    scale_fill_viridis_c(name = "Groundwater pumping (acre-feet)")  
+
+g_legend +
+    scale_fill_viridis_c() + 
+    labs(fill = "Groundwater pumping (acre-feet)") 
+```
+
+
+---
+
+# Useful Functions
+
+## lab {#lab}
+
+```{r}
+labs(fill = "Groundwater pumping (acre-feet)")
+labs(fill = “Yield level \n (kg/ha)”
+```
+
+## theme {#theme}
+
+```{r}
+theme(panel.grid = element_line(color="transparent"),  )
+
+theme(legend.position = "bottom")
+
+theme(
+  legend.position = "bottom",
+  #--- change the size of the legend ---#
+  legend.key.height = unit(0.5, "cm"),
+  legend.key.width = unit(2, "cm")
+  )
+```
+
+
+## facet_grid(type~variable,scale='free') {#AdjustScaleAxis}
+
+```{r}
+g_impact_viz <- ggplot() +
+    geom_line(data=impact_data, aes(y=tau_hat,x=value)) +
+    geom_ribbon(data=impact_data,
+      aes(
+      #- 95% CI: lower bound -#
+        ymin=tau_hat-1.96*tau_hat_se,
+        #- 95% CI: upper bound -#
+        ymax=tau_hat+1.96*tau_hat_se,
+        x=value
+      ),
+      alpha=0.4
+    ) +
+    geom_histogram(data=data_dist_viz,aes(x=value),color='black',fill='white') +
+    facet_grid(type~variable,scale='free') +
+    ylab('') +
+    xlab('')
+```
 
 
 
+## theme(panel.grid = element_line(color='transparent')) {#Transparent}
+
+```{r}
+ggplot() +  
+    geom_sf(data = gw_by_county, aes(fill = af_used)) +
+    facet_grid(year ~ .) + 
+    theme_bw() +
+    theme(
+        panel.grid = element_line(color='transparent'))
+    )
+```
 
 
+## scale_fill_viridis_c() {#scale_fill_viridis_c}
 
-
-
-
-
-
-
-
+```{r}
+g_legend +
+    scale_fill_viridis_c(name = "Groundwater pumping (acre-feet)")  
+```
 
 
 
