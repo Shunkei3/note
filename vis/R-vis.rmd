@@ -73,6 +73,7 @@ library(gt)
 + [**theme() of ggplot2**](#theme)
 + [**Modify the legend**](#ChangeLegendName)
 + [**Theme option**](#theme)
++ [**Plot Raster with facet**](#RasterFascet)
 
 ## Useful Functions
 
@@ -305,7 +306,46 @@ theme_dist <-
   )
 ```
 
+## Plot Raster with facet {#RasterFascet}
 
+### `ggplot2`
+
+```{r}
+test <-  
+  as.data.frame(pr_all, xy = TRUE) %>%
+  melt(., id.vars = c("x", "y"))
+
+ ggplot() +
+    geom_sf(
+      data = 
+        nrd_bound %>%
+        filter(NRD_Name == "Lower Republican") %>%
+        st_transform(crop_layer, crs = terra::crs(temp_crop_in_inch_sum))
+      ) +
+    geom_raster(data = test, aes(x = x, y = y, fill = value)) +
+    facet_wrap(~ variable) +
+    scale_fill_viridis_c() +
+    theme(
+      legend.position = "bottom"
+    ) +
+    labs(fill = "In-season precipitation (inches)") 
+```
+
+
+### `rasterVis`
+
+```{r}
+library(rasterVis)
+vis_pr <- 
+  gplot(pr_all)  +
+    geom_tile(aes(fill = value)) +
+    facet_wrap(~ variable) +
+    scale_fill_gradientn(colours = rev(terrain.colors(225))) +
+    theme(
+      legend.position = "bottom"
+    ) +
+    labs(fill = "In-season precipitation (inches)") 
+```
 
 
 ---

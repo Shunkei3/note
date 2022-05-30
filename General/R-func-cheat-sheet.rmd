@@ -74,6 +74,8 @@ library(gt)
 + [Basic Statics Summary](#SummaryTable)
 + [Check whether a column has NA values or not](#CheckNA)
 + [Find the percentage of NA](#FindNA)
++ [lubridate: Date-time data](#lubridate)
+
 
 ## A list of useful functions
 
@@ -338,6 +340,15 @@ sapply(temp, function(x) any(is.na(x)))
 sapply(data, function(x) sum(is.na(x)) / nrow(property_basic_meta))
 ```
 
+## `lubridate`: Date-time data {#lubridate}
+
+```{r}
+year = 2008
+start_day <- (ymd(paste0(year, "-04-01")) - ymd("1900-01-01")) %>% as.numeric # nolint
+
+end_day <- (ymd(paste0(year, "-09-30")) - ymd("1900-01-01")) %>% as.numeric 
+```
+
 
 ---
 
@@ -455,6 +466,14 @@ str_detect(fruit, "[aeiou]") #ans. [1] TRUE TRUE TRUE TRUE
 + `\Z` : matches the end of the input, but before the final line terminator, if exists
 
 
+
++ `str_replace()`
+  * Replace matched pattern in a string
+  * str_replace(string, pattern, replacement)
+
+```{r}
+names(reg_data_5mi) <- str_replace(names(reg_data_5mi), "_r", "")
+```
 
 ## list.files() {#listfiles}
 

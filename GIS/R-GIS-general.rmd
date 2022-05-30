@@ -72,7 +72,8 @@ library(gt)
 + [Make boundary sf object from multi-polygons](#MakeBoundary)
 + [Create X, Y columns](#CreateXYColumns)
 + [Make sf object from data.table](#Makesf)
-
++ [Raster operation: how to multiply a value to cell values](#RasterOperation)
++ [stars object](#Stars)
 
 ## Useful Functions
 
@@ -153,6 +154,10 @@ xy <- dplyr::select(field_padding, unique_cell_id) %>%
 ```{r}
 st_as_sf(,coords = c("X", "Y"))
 ```
+
+
+## Stars object {#Stars}
+
 
 ---
 
