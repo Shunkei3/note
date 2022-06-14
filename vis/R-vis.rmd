@@ -71,6 +71,7 @@ library(gt)
 + [**tmap package**](#tmap)
 + [**Descriptive Statistical: ggpairs()**](#CorrelationMap)
 + [**theme() of ggplot2**](#theme)
++ [**Change ggplot facet lavels**](#GgplotFacetLavels)
 + [**Modify the legend**](#ChangeLegendName)
 + [**Theme option**](#theme)
 + [**Plot Raster with facet**](#RasterFascet)
@@ -172,6 +173,42 @@ theme_for_map <- theme(
 
 g_base + theme_for_map
 ```
+
+### Change ggplot facet lavels {#GgplotFacetLavels}
+
+```{r}
+library(ggplot2)
+theme_set(
+  theme_light() + theme(legend.position = "top")
+  )
+
+# Load data and convert dose to a factor variable
+data("ToothGrowth")
+ToothGrowth$dose <- as.factor(ToothGrowth$dose)
+
+# Box plot, facet accordding to the variable dose and supp
+p <- ggplot(ToothGrowth, aes(x = dose, y = len)) + 
+  geom_boxplot(aes(fill = supp), position = position_dodge(0.9)) +
+  scale_fill_viridis_d() 
+p + facet_grid(dose ~ supp)
+
+
+# New facet label names for dose variable
+dose.labs <- c("D0.5", "D1", "D2")
+names(dose.labs) <- c("0.5", "1", "2")
+
+# New facet label names for supp variable
+supp.labs <- c("Orange Juice", "Vitamin C")
+names(supp.labs) <- c("OJ", "VC")
+
+# Create the plot
+p + facet_grid(
+  dose ~ supp, 
+  labeller = labeller(dose = dose.labs, supp = supp.labs)
+  )
+```
+
+
 
 ### Change legend position (1)
 
