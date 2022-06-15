@@ -72,8 +72,9 @@ library(gt)
 + [Make boundary sf object from multi-polygons](#MakeBoundary)
 + [Create X, Y columns](#CreateXYColumns)
 + [Make sf object from data.table](#Makesf)
-+ [Raster operation: how to multiply a value to cell values](#RasterOperation)
-+ [stars object](#Stars)
++ [Spatial Operations on vector data](#SpatialOperationsVector)
+  * "Geocomputation with R":[here](https://geocompr.robinlovelace.net/spatial-operations.html)
+
 
 ## Useful Functions
 
@@ -129,6 +130,10 @@ KS_county_sf <-
   st_transform(terra::crs(prism_tmax_0701_sr))
 ```
 
+<br>
+
+<br>
+
 ## Make boundary sf object from multi-polygons {#MakeBoundary}
 
 ```{r}
@@ -140,6 +145,11 @@ field_base %>%
 st_union()
 ```
 
+<br>
+
+<br>
+
+
 ## Create X, Y columns {#CreateXYColumns}
 
 ```{r}
@@ -149,14 +159,36 @@ xy <- dplyr::select(field_padding, unique_cell_id) %>%
   data.table()
 ```
 
+<br>
+
+<br>
+
 ## Make sf object from data.table {#Makesf}
 
 ```{r}
-st_as_sf(,coords = c("X", "Y"))
+st_as_sf(
+  x =,
+  coords = c("X", "Y"),
+  crs = 
+  )
 ```
 
+<br>
 
-## Stars object {#Stars}
+<br>
+
+## Spatial Operations on vector data {#SpatialOperationsVector}
+
+**Spatial subsetting** \
+syntax `x[y, , op = st_intersects]`:
++  `x` is an sf object from which a subset of rows will be returned
+  *  point 
++  `y` is the ‘subsetting object
+  *  polygon
+
+```{r}
+canterbury_height = nz_height[canterbury, ]
+```
 
 
 ---

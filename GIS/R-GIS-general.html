@@ -1544,6 +1544,11 @@ border</a></li>
 multi-polygons</a></li>
 <li><a href="#CreateXYColumns">Create X, Y columns</a></li>
 <li><a href="#Makesf">Make sf object from data.table</a></li>
+<li><a href="#SpatialOperationsVector">Spatial Operations on vector
+data</a>
+<ul>
+<li>“Geocomputation with R”:<a href="https://geocompr.robinlovelace.net/spatial-operations.html">here</a></li>
+</ul></li>
 </ul>
 </div>
 <div id="useful-functions" class="section level2" number="1.2">
@@ -1614,6 +1619,8 @@ KS_county_sf &lt;-
   st_as_sf() %&gt;%
   #--- transform using the CRS of the PRISM tmax data  ---#
   st_transform(terra::crs(prism_tmax_0701_sr))</code></pre>
+<p><br></p>
+<p><br></p>
 </div>
 <div id="MakeBoundary" class="section level2" number="2.2">
 <h2><span class="header-section-number">2.2</span> Make boundary sf
@@ -1624,6 +1631,8 @@ object from multi-polygons</h2>
   st_as_sf()
 ## this might be better
 st_union()</code></pre>
+<p><br></p>
+<p><br></p>
 </div>
 <div id="CreateXYColumns" class="section level2" number="2.3">
 <h2><span class="header-section-number">2.3</span> Create X, Y
@@ -1632,11 +1641,28 @@ columns</h2>
   cbind(., st_coordinates(st_centroid(.))) %&gt;%
   st_drop_geometry() %&gt;%
   data.table()</code></pre>
+<p><br></p>
+<p><br></p>
 </div>
 <div id="Makesf" class="section level2" number="2.4">
 <h2><span class="header-section-number">2.4</span> Make sf object from
 data.table</h2>
-<pre class="r"><code>st_as_sf(,coords = c(&quot;X&quot;, &quot;Y&quot;))</code></pre>
+<pre class="r"><code>st_as_sf(
+  x =,
+  coords = c(&quot;X&quot;, &quot;Y&quot;),
+  crs = 
+  )</code></pre>
+<p><br></p>
+<p><br></p>
+</div>
+<div id="SpatialOperationsVector" class="section level2" number="2.5">
+<h2><span class="header-section-number">2.5</span> Spatial Operations on
+vector data</h2>
+<p><strong>Spatial subsetting</strong><br />
+syntax <code>x[y, , op = st_intersects]</code>: + <code>x</code> is an
+sf object from which a subset of rows will be returned * point +
+<code>y</code> is the ’subsetting object * polygon</p>
+<pre class="r"><code>canterbury_height = nz_height[canterbury, ]</code></pre>
 <hr />
 </div>
 </div>
