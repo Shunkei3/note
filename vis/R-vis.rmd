@@ -69,6 +69,7 @@ library(gt)
 
 ## Topics
 + [**tmap package**](#tmap)
+  * Read [this](https://bookdown.org/nicohahn/making_maps_with_r5/docs/tmap.html) 
 + [**Descriptive Statistical: ggpairs()**](#CorrelationMap)
 + [**theme() of ggplot2**](#theme)
 + [**Change ggplot facet lavels**](#GgplotFacetLavels)
@@ -134,6 +135,27 @@ tm_shape(bavaria) +
 tm_shape(bavaria) +
   tm_polygons()
 ```
+
+Color differentiated point data \
++ Use `tm_symbols()` or `tm_dots`
+
+```{r}
+tm_shape(hp_bd_buffer_100km)+
+  tm_fill(alpha=0.6) +
+tm_shape(hp_bd) +
+  tm_fill(col="lightblue") +
+tm_shape(unique_tg_corelogic_sf) +
+  tm_dots(col = "Ogallala", size = 0.001)
+
+
+tm_shape(hp_bd_buffer_100km)+
+  tm_borders(col = "black", lwd = 1.5) +
+tm_shape(hp_bd) +
+  tm_borders(col="blue", lwd = 1.5) +
+tm_shape(unique_tg_corelogic_sf) +
+  tm_symbols(col = "Ogallala", shape = 19, size = 0.001)
+```
+
 
 ## Descriptive Statistical: ggpairs() {#CorrelationMap}
 

@@ -1538,12 +1538,20 @@ div.tocify {
 <div id="topics" class="section level2" number="1.1">
 <h2><span class="header-section-number">1.1</span> Topics</h2>
 <ul>
-<li><a href="#tmap"><strong>tmap package</strong></a></li>
+<li><a href="#tmap"><strong>tmap package</strong></a>
+<ul>
+<li>Read <a href="https://bookdown.org/nicohahn/making_maps_with_r5/docs/tmap.html">this</a></li>
+</ul></li>
 <li><a href="#CorrelationMap"><strong>Descriptive Statistical:
 ggpairs()</strong></a></li>
 <li><a href="#theme"><strong>theme() of ggplot2</strong></a></li>
-<li><a href="#ChangeLegendName"><strong>Change the legend
-name</strong></a></li>
+<li><a href="#GgplotFacetLavels"><strong>Change ggplot facet
+lavels</strong></a></li>
+<li><a href="#ChangeLegendName"><strong>Modify the
+legend</strong></a></li>
+<li><a href="#theme"><strong>Theme option</strong></a></li>
+<li><a href="#RasterFascet"><strong>Plot Raster with
+facet</strong></a></li>
 </ul>
 </div>
 <div id="useful-functions" class="section level2" number="1.2">
@@ -1609,6 +1617,14 @@ tm_shape(bavaria) +
 
 tm_shape(bavaria) +
   tm_polygons()</code></pre>
+<p>Color differentiated point data<br />
++ Use <code>tm_symbols()</code></p>
+<pre class="r"><code>tm_shape(hp_bd_buffer_100km)+
+  tm_borders(col = &quot;black&quot;, lwd = 1.5) +
+tm_shape(hp_bd) +
+  tm_borders(col=&quot;blue&quot;, lwd = 1.5) +
+tm_shape(unique_tg_corelogic_sf) +
+  tm_symbols(col = &quot;Ogallala&quot;, shape = 19, size = 0.001)</code></pre>
 </div>
 <div id="CorrelationMap" class="section level2" number="2.2">
 <h2><span class="header-section-number">2.2</span> Descriptive
@@ -1647,16 +1663,49 @@ theme_for_map &lt;- theme(
 )
 
 g_base + theme_for_map</code></pre>
-<div id="change-legend-position-1" class="section level3" number="2.3.1">
-<h3><span class="header-section-number">2.3.1</span> Change legend
+<div id="GgplotFacetLavels" class="section level3" number="2.3.1">
+<h3><span class="header-section-number">2.3.1</span> Change ggplot facet
+lavels</h3>
+<pre class="r"><code>library(ggplot2)
+theme_set(
+  theme_light() + theme(legend.position = &quot;top&quot;)
+  )
+
+# Load data and convert dose to a factor variable
+data(&quot;ToothGrowth&quot;)
+ToothGrowth$dose &lt;- as.factor(ToothGrowth$dose)
+
+# Box plot, facet accordding to the variable dose and supp
+p &lt;- ggplot(ToothGrowth, aes(x = dose, y = len)) + 
+  geom_boxplot(aes(fill = supp), position = position_dodge(0.9)) +
+  scale_fill_viridis_d() 
+p + facet_grid(dose ~ supp)
+
+
+# New facet label names for dose variable
+dose.labs &lt;- c(&quot;D0.5&quot;, &quot;D1&quot;, &quot;D2&quot;)
+names(dose.labs) &lt;- c(&quot;0.5&quot;, &quot;1&quot;, &quot;2&quot;)
+
+# New facet label names for supp variable
+supp.labs &lt;- c(&quot;Orange Juice&quot;, &quot;Vitamin C&quot;)
+names(supp.labs) &lt;- c(&quot;OJ&quot;, &quot;VC&quot;)
+
+# Create the plot
+p + facet_grid(
+  dose ~ supp, 
+  labeller = labeller(dose = dose.labs, supp = supp.labs)
+  )</code></pre>
+</div>
+<div id="change-legend-position-1" class="section level3" number="2.3.2">
+<h3><span class="header-section-number">2.3.2</span> Change legend
 position (1)</h3>
 <pre class="r"><code>g_legend + 
     scale_fill_viridis_c() + 
     labs(fill = &quot;Groundwater pumping (acre-feet)&quot;) +
     theme(legend.position = &quot;bottom&quot;)</code></pre>
 </div>
-<div id="change-legend-position-2" class="section level3" number="2.3.2">
-<h3><span class="header-section-number">2.3.2</span> Change legend
+<div id="change-legend-position-2" class="section level3" number="2.3.3">
+<h3><span class="header-section-number">2.3.3</span> Change legend
 position (2)</h3>
 <ul>
 <li>have the legend title on top of the color bar with guides()</li>
@@ -1667,8 +1716,8 @@ position (2)</h3>
     theme(legend.position = &quot;bottom&quot;) +
     guides(fill = guide_colorbar (title.position=&quot;top&quot;))</code></pre>
 </div>
-<div id="elongate-the-color-bar-and-make-the-legend-thinner" class="section level3" number="2.3.3">
-<h3><span class="header-section-number">2.3.3</span> Elongate the color
+<div id="elongate-the-color-bar-and-make-the-legend-thinner" class="section level3" number="2.3.4">
+<h3><span class="header-section-number">2.3.4</span> Elongate the color
 bar and make the legend thinner</h3>
 <p>with <code>legend.key.width =</code> option and
 <code>legend.key.height=</code> for <code>theme()</code></p>
@@ -1700,8 +1749,8 @@ g_legend_2 +
 </div>
 </div>
 <div id="ChangeLegendName" class="section level2" number="2.4">
-<h2><span class="header-section-number">2.4</span> Change the legend
-name</h2>
+<h2><span class="header-section-number">2.4</span> Modify the
+legend</h2>
 <ul>
 <li>you can change the legend name with
 <code>scale_fill_viridis_c()</code></li>
@@ -1712,8 +1761,106 @@ name</h2>
 
 g_legend +
     scale_fill_viridis_c() + 
-    labs(fill = &quot;Groundwater pumping (acre-feet)&quot;) </code></pre>
+    labs(fill = &quot;Groundwater pumping (acre-feet)&quot;) 
+
+# Or 
+guides(fill=guide_legend(title=&quot;New Legend Title&quot;))</code></pre>
+<ul>
+<li>Remove a legend</li>
+</ul>
+<pre class="r"><code>theme(legend.position=&quot;none&quot;)</code></pre>
+<ul>
+<li>Remove a legend title</li>
+</ul>
+<pre class="r"><code>theme(legend.title=element_blank())</code></pre>
+<ul>
+<li>Modify the label of the legend: <code>scale_fill_hue</code> or
+<code>scale_color_hue</code>
+<ul>
+<li>Especially in the case when you want to change the group names of
+the legend.</li>
+<li>Other options are <code>scale_color_discrete</code> or
+<code>scale_fill_discrete</code></li>
+</ul></li>
+</ul>
+<pre class="r"><code>ggplot() +
+  geom_sf(data=nrd_boud)+
+  geom_sf(data=st_as_sf(ir_data, coords = c(&quot;longdd&quot;,&quot;latdd&quot;), crs = 4269), aes(color=factor(in_5mi)), size=0.05) +
+  theme_bw() + 
+    theme(
+    plot.title = element_text(hjust = 0.5),
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank()
+  ) +
+  scale_color_hue(labels = c(&quot;Wells inside of the buffer&quot;, &quot;Wells outside of the buffer&quot;))
+  ggtitle(&quot;(1) Wells within the 5 mile buffer&quot;)</code></pre>
+</div>
+<div id="theme" class="section level2" number="2.5">
+<h2><span class="header-section-number">2.5</span> Theme option</h2>
+<pre class="r"><code>theme_figure &lt;-
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    rect = element_blank(),
+    text = element_text(family = &quot;Times New Roman&quot;)
+  )
+
+theme_dist &lt;-
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    strip.text.x = element_text(size = 12, face = &quot;bold&quot;),
+    strip.text.y = element_text(size = 12, face = &quot;bold&quot;),
+    legend.title = element_text(size = 12, face = &quot;bold&quot;),
+    legend.text = element_text(size = 12, face = &quot;bold&quot;),
+    legend.position = &quot;bottom&quot;,
+    text = element_text(family = &quot;Times New Roman&quot;)
+  )</code></pre>
+</div>
+<div id="RasterFascet" class="section level2" number="2.6">
+<h2><span class="header-section-number">2.6</span> Plot Raster with
+facet</h2>
+<div id="ggplot2" class="section level3" number="2.6.1">
+<h3><span class="header-section-number">2.6.1</span>
+<code>ggplot2</code></h3>
+<pre class="r"><code>test &lt;-  
+  as.data.frame(pr_all, xy = TRUE) %&gt;%
+  melt(., id.vars = c(&quot;x&quot;, &quot;y&quot;))
+
+ ggplot() +
+    geom_sf(
+      data = 
+        nrd_bound %&gt;%
+        filter(NRD_Name == &quot;Lower Republican&quot;) %&gt;%
+        st_transform(crop_layer, crs = terra::crs(temp_crop_in_inch_sum))
+      ) +
+    geom_raster(data = test, aes(x = x, y = y, fill = value)) +
+    facet_wrap(~ variable) +
+    scale_fill_viridis_c() +
+    theme(
+      legend.position = &quot;bottom&quot;
+    ) +
+    labs(fill = &quot;In-season precipitation (inches)&quot;) </code></pre>
+</div>
+<div id="rastervis" class="section level3" number="2.6.2">
+<h3><span class="header-section-number">2.6.2</span>
+<code>rasterVis</code></h3>
+<pre class="r"><code>library(rasterVis)
+vis_pr &lt;- 
+  gplot(pr_all)  +
+    geom_tile(aes(fill = value)) +
+    facet_wrap(~ variable) +
+    scale_fill_gradientn(colours = rev(terrain.colors(225))) +
+    theme(
+      legend.position = &quot;bottom&quot;
+    ) +
+    labs(fill = &quot;In-season precipitation (inches)&quot;) </code></pre>
 <hr />
+</div>
 </div>
 </div>
 <div id="useful-functions-1" class="section level1" number="3">

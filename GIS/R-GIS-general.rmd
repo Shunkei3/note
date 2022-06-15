@@ -73,7 +73,9 @@ library(gt)
 + [Create X, Y columns](#CreateXYColumns)
 + [Make sf object from data.table](#Makesf)
 + [Spatial Operations on vector data](#SpatialOperationsVector)
-  * "Geocomputation with R":[here](https://geocompr.robinlovelace.net/spatial-operations.html)
+  * See "Geocomputation with R":[here](https://geocompr.robinlovelace.net/spatial-operations.html)
+  * 1. Spatial subsetting
+  * 2. `ifelse` with spatial condition
 
 
 ## Useful Functions
@@ -179,7 +181,7 @@ st_as_sf(
 
 ## Spatial Operations on vector data {#SpatialOperationsVector}
 
-**Spatial subsetting** \
+### 1. Spatial subsetting
 syntax `x[y, , op = st_intersects]`:
 +  `x` is an sf object from which a subset of rows will be returned
   *  point 
@@ -189,6 +191,23 @@ syntax `x[y, , op = st_intersects]`:
 ```{r}
 canterbury_height = nz_height[canterbury, ]
 ```
+
+
+### 2. `ifelse` with spatial condition
+Use `st_intersects` for the condition:
+  + syntax `st_intersects(x, y)`:
+
+```{r}
+tg_corelogic_sf <- 
+  # --- Subset points intersecting the areas within 100 km boundary --- #
+  corelogic_sf[hp_bd_buffer_100km,] %>%
+  # --- Make a dummy "Ogallala" --- #
+  mutate(Ogallala = 
+    ifelse(st_intersects(., hp_bd, sparse = FALSE), 1, 0)
+    )
+```
+
+
 
 
 ---
