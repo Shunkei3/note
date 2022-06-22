@@ -1546,6 +1546,10 @@ folder</a></li>
 <li><a href="#CheckNA">Check whether a column has NA values or
 not</a></li>
 <li><a href="#FindNA">Find the percentage of NA</a></li>
+<li><a href="#lubridate">lubridate: Date-time data</a></li>
+<li><a href="#ExtractNArows">Extract Subset of Data Frame Rows
+Containing NA</a></li>
+<li></li>
 </ul>
 </div>
 <div id="a-list-of-useful-functions" class="section level2" number="1.2">
@@ -1828,6 +1832,39 @@ column has NA values or not</h2>
 <h2><span class="header-section-number">2.6</span> Find the percentage
 of NA</h2>
 <pre class="r"><code>sapply(data, function(x) sum(is.na(x)) / nrow(property_basic_meta))</code></pre>
+</div>
+<div id="lubridate" class="section level2" number="2.7">
+<h2><span class="header-section-number">2.7</span>
+<code>lubridate</code>: Date-time data</h2>
+<ul>
+<li>Look [<a href="https://lubridate.tidyverse.org/reference/as_date.html">Here</a>]</li>
+</ul>
+<pre class="r"><code>year = 2008
+start_day &lt;- (ymd(paste0(year, &quot;-04-01&quot;)) - ymd(&quot;1900-01-01&quot;)) %&gt;% as.numeric # nolint
+
+end_day &lt;- (ymd(paste0(year, &quot;-09-30&quot;)) - ymd(&quot;1900-01-01&quot;)) %&gt;% as.numeric </code></pre>
+<p>Convert number to <code>ymd</code></p>
+<pre class="r"><code>dt_utc &lt;- ymd_hms(&quot;2010-08-03 00:50:50&quot;)
+dt_europe &lt;- ymd_hms(&quot;2010-08-03 00:50:50&quot;, tz=&quot;Europe/London&quot;)
+c(as_date(dt_utc), as.Date(dt_utc))
+c(as_date(dt_europe), as.Date(dt_europe))
+
+as_date(days_since_base, origin = &quot;1900-01-01&quot;)</code></pre>
+<ul>
+<li>zoo package</li>
+</ul>
+<pre class="r"><code>.[, date := as.Date.numeric(days_since_base, origin = &quot;1900-01-01&quot;)] %&gt;%</code></pre>
+</div>
+<div id="ExtractNArows" class="section level2" number="2.8">
+<h2><span class="header-section-number">2.8</span> Extract Subset of
+Data Frame Rows Containing NA</h2>
+<pre class="r"><code>data &lt;- data.frame(x1 = c(3, NA, 3, 5, NA),    # Create data
+                   x2 = c(NA, 1, 2, 3, 4),
+                   x3 = c(7, NA, 4, 1, 2))</code></pre>
+<p><strong>Extract Rows with NA in Any Column</strong></p>
+<pre class="r"><code>data[rowSums(is.na(data)) &gt; 0, ]               # Missings in any row</code></pre>
+<p><strong>Extract Rows with NA in Specific Column</strong></p>
+<pre class="r"><code>data[is.na(data$x1), ]   </code></pre>
 <hr />
 </div>
 </div>
@@ -1942,13 +1979,19 @@ str_detect(fruit, &quot;a$&quot;)      #ans. [1] FALSE  TRUE FALSE FALSE
 str_detect(fruit, &quot;b&quot;)       #ans. [1] FALSE  TRUE FALSE FALSE
 str_detect(fruit, &quot;[aeiou]&quot;) #ans. [1] TRUE TRUE TRUE TRUE</code></pre>
 <ul>
-<li><code>^</code> : now matches the start of each line</li>
-<li><code>$</code> : now matches the end of each line</li>
-<li><code>\A</code> : matches the start of the input</li>
-<li><code>\z</code> : matches the end of the input</li>
-<li><code>\Z</code> : matches the end of the input, but before the final
-line terminator, if exists</li>
+<li><p><code>^</code> : now matches the start of each line</p></li>
+<li><p><code>$</code> : now matches the end of each line</p></li>
+<li><p><code>\A</code> : matches the start of the input</p></li>
+<li><p><code>\z</code> : matches the end of the input</p></li>
+<li><p><code>\Z</code> : matches the end of the input, but before the
+final line terminator, if exists</p></li>
+<li><p><code>str_replace()</code></p>
+<ul>
+<li>Replace matched pattern in a string</li>
+<li>str_replace(string, pattern, replacement)</li>
+</ul></li>
 </ul>
+<pre class="r"><code>names(reg_data_5mi) &lt;- str_replace(names(reg_data_5mi), &quot;_r&quot;, &quot;&quot;)</code></pre>
 </div>
 <div id="listfiles" class="section level2" number="3.9">
 <h2><span class="header-section-number">3.9</span> list.files()</h2>

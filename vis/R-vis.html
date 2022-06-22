@@ -1618,8 +1618,16 @@ tm_shape(bavaria) +
 tm_shape(bavaria) +
   tm_polygons()</code></pre>
 <p>Color differentiated point data<br />
-+ Use <code>tm_symbols()</code></p>
++ Use <code>tm_symbols()</code> or <code>tm_dots</code></p>
 <pre class="r"><code>tm_shape(hp_bd_buffer_100km)+
+  tm_fill(alpha=0.6) +
+tm_shape(hp_bd) +
+  tm_fill(col=&quot;lightblue&quot;) +
+tm_shape(unique_tg_corelogic_sf) +
+  tm_dots(col = &quot;Ogallala&quot;, size = 0.001)
+
+
+tm_shape(hp_bd_buffer_100km)+
   tm_borders(col = &quot;black&quot;, lwd = 1.5) +
 tm_shape(hp_bd) +
   tm_borders(col=&quot;blue&quot;, lwd = 1.5) +

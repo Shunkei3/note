@@ -75,7 +75,8 @@ library(gt)
 + [Check whether a column has NA values or not](#CheckNA)
 + [Find the percentage of NA](#FindNA)
 + [lubridate: Date-time data](#lubridate)
-
++ [Extract Subset of Data Frame Rows Containing NA](#ExtractNArows)
++ 
 
 ## A list of useful functions
 
@@ -342,12 +343,59 @@ sapply(data, function(x) sum(is.na(x)) / nrow(property_basic_meta))
 
 ## `lubridate`: Date-time data {#lubridate}
 
++ Look [[Here](https://lubridate.tidyverse.org/reference/as_date.html)]
+
+
 ```{r}
 year = 2008
 start_day <- (ymd(paste0(year, "-04-01")) - ymd("1900-01-01")) %>% as.numeric # nolint
 
 end_day <- (ymd(paste0(year, "-09-30")) - ymd("1900-01-01")) %>% as.numeric 
 ```
+
+Convert number to `ymd`
+
+```{r}
+dt_utc <- ymd_hms("2010-08-03 00:50:50")
+dt_europe <- ymd_hms("2010-08-03 00:50:50", tz="Europe/London")
+c(as_date(dt_utc), as.Date(dt_utc))
+c(as_date(dt_europe), as.Date(dt_europe))
+
+as_date(days_since_base, origin = "1900-01-01")
+
+```
+
++ zoo package
+
+```{r}
+.[, date := as.Date.numeric(days_since_base, origin = "1900-01-01")] %>%
+```
+
+
+## Extract Subset of Data Frame Rows Containing NA {#ExtractNArows}
+
+
+```{r}
+data <- data.frame(x1 = c(3, NA, 3, 5, NA),    # Create data
+                   x2 = c(NA, 1, 2, 3, 4),
+                   x3 = c(7, NA, 4, 1, 2))
+```
+
+**Extract Rows with NA in Any Column**
+
+```{r}
+data[rowSums(is.na(data)) > 0, ]               # Missings in any row
+```
+
+**Extract Rows with NA in Specific Column**
+
+```{r}
+data[is.na(data$x1), ]   
+```
+
+
+
+
 
 
 ---
