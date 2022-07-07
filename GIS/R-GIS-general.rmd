@@ -76,6 +76,7 @@ library(gt)
   * See "Geocomputation with R":[here](https://geocompr.robinlovelace.net/spatial-operations.html)
   * 1. Spatial subsetting
   * 2. `ifelse` with spatial condition
++ [Cropping and Masking](#Cropping&Masking)
 
 
 ## Useful Functions
@@ -207,6 +208,19 @@ tg_corelogic_sf <-
     )
 ```
 
+## Cropping and Masking {#Cropping&Masking}
+
+**Crop**: crop returns a *geographic subset of an object* as specified by an Extent object (or object from which an extent object can be extracted/created)
+**Mask**: Create a new Raster$^*$ object that has the same values as `x`, except for the cells that are `NA` (or other `maskvalue`) in a `mask`. These cells become `NA` (or other `updatevalue`). 
+
+
+### Cropping
++ `terra::crop(SpatRaster, sf)`
+  * NOTE: the cropped raster layer extends beyond the outer boundary of the polygon 
+
+### Masking
++ `terra::mask(x=SpatRaster, mask=SpatVector)`
+  * If `x` is a `SpatRaster`: Create a new SpatRaster that has the same values as SpatRaster `x`, except for the cells that are `NA` (or another `maskvalue`) in another SpatRaster (the 'mask'), or not covered by a SpatVector. These cells become `NA` (or another `updatevalue`).
 
 
 

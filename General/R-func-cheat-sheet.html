@@ -1549,6 +1549,8 @@ not</a></li>
 <li><a href="#lubridate">lubridate: Date-time data</a></li>
 <li><a href="#ExtractNArows">Extract Subset of Data Frame Rows
 Containing NA</a></li>
+<li><a href="#selectgroup">Select groups which have at least one of a
+certain value</a></li>
 <li></li>
 </ul>
 </div>
@@ -1865,6 +1867,17 @@ Data Frame Rows Containing NA</h2>
 <pre class="r"><code>data[rowSums(is.na(data)) &gt; 0, ]               # Missings in any row</code></pre>
 <p><strong>Extract Rows with NA in Specific Column</strong></p>
 <pre class="r"><code>data[is.na(data$x1), ]   </code></pre>
+</div>
+<div id="selectgroup" class="section level2" number="2.9">
+<h2><span class="header-section-number">2.9</span> Select groups which
+have at least one of a certain value</h2>
+<ul>
+<li>check <a href="https://stackoverflow.com/questions/40825037/select-groups-which-have-at-least-one-of-a-certain-value">this</a></li>
+</ul>
+<pre class="r"><code>se_cdl_value &lt;-
+  cdl_value %&gt;% 
+  .[, .SD[any(Layer_1 %in% se_codes)], by = ID] %&gt;%
+  dcast(ID ~ type, value.var = &quot;Layer_1&quot;) </code></pre>
 <hr />
 </div>
 </div>

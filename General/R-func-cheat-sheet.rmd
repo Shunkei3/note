@@ -76,6 +76,7 @@ library(gt)
 + [Find the percentage of NA](#FindNA)
 + [lubridate: Date-time data](#lubridate)
 + [Extract Subset of Data Frame Rows Containing NA](#ExtractNArows)
++ [Select groups which have at least one of a certain value](#selectgroup)
 + 
 
 ## A list of useful functions
@@ -394,8 +395,15 @@ data[is.na(data$x1), ]
 ```
 
 
+## Select groups which have at least one of a certain value {#selectgroup}
++ check [this](https://stackoverflow.com/questions/40825037/select-groups-which-have-at-least-one-of-a-certain-value)
 
-
+```{r}
+se_cdl_value <-
+  cdl_value %>% 
+  .[, .SD[any(Layer_1 %in% se_codes)], by = ID] %>%
+  dcast(ID ~ type, value.var = "Layer_1") 
+```
 
 
 ---
