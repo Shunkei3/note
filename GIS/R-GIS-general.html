@@ -1542,6 +1542,7 @@ div.tocify {
 border</a></li>
 <li><a href="#MakeBoundary">Make boundary sf object from
 multi-polygons</a></li>
+<li><a href="#CRS">Finding appropriate CRS</a></li>
 <li><a href="#CreateXYColumns">Create X, Y columns</a></li>
 <li><a href="#Makesf">Make sf object from data.table</a></li>
 <li><a href="#SpatialOperationsVector">Spatial Operations on vector
@@ -1555,6 +1556,7 @@ data</a>
 <li><code>ifelse</code> with spatial condition</li>
 </ol></li>
 </ul></li>
+<li><a href="#Cropping&amp;Masking">Cropping and Masking</a></li>
 </ul>
 </div>
 <div id="useful-functions" class="section level2" number="1.2">
@@ -1562,8 +1564,10 @@ data</a>
 <ul>
 <li><p><a href="#map"><strong>map()</strong></a></p>
 <ul>
-<li>Draw lines and polygons as specified by a map database</li>
-</ul></li>
+<li>Draw lines and polygons as sp</li>
+</ul>
+<h2 id="finding-appropriate-crscrsecified-by-a-map-database">Finding
+appropriate CRS{#CRS}ecified by a map database</h2></li>
 <li><p><a href="#value"><strong>values()</strong></a></p>
 <ul>
 <li>returns the raster cell values for a RasterLayer or RasterBrick
@@ -1640,8 +1644,24 @@ st_union()</code></pre>
 <p><br></p>
 <p><br></p>
 </div>
-<div id="CreateXYColumns" class="section level2" number="2.3">
-<h2><span class="header-section-number">2.3</span> Create X, Y
+<div id="CRS" class="section level2" number="2.3">
+<h2><span class="header-section-number">2.3</span> Finding appropriate
+CRS</h2>
+<ul>
+<li><code>crsuggest::suggest_crs()</code>:
+<ul>
+<li>returns a tibble of possible choices for a suitable projected CRS
+for your data</li>
+</ul></li>
+</ul>
+<pre class="r"><code>fl_counties &lt;- counties(&quot;FL&quot;, cb = TRUE)
+
+suggest_crs(fl_counties)</code></pre>
+<p><br></p>
+<p><br></p>
+</div>
+<div id="CreateXYColumns" class="section level2" number="2.4">
+<h2><span class="header-section-number">2.4</span> Create X, Y
 columns</h2>
 <pre class="r"><code>xy &lt;- dplyr::select(field_padding, unique_cell_id) %&gt;%
   cbind(., st_coordinates(st_centroid(.))) %&gt;%
@@ -1650,8 +1670,8 @@ columns</h2>
 <p><br></p>
 <p><br></p>
 </div>
-<div id="Makesf" class="section level2" number="2.4">
-<h2><span class="header-section-number">2.4</span> Make sf object from
+<div id="Makesf" class="section level2" number="2.5">
+<h2><span class="header-section-number">2.5</span> Make sf object from
 data.table</h2>
 <pre class="r"><code>st_as_sf(
   x =,
@@ -1661,19 +1681,19 @@ data.table</h2>
 <p><br></p>
 <p><br></p>
 </div>
-<div id="SpatialOperationsVector" class="section level2" number="2.5">
-<h2><span class="header-section-number">2.5</span> Spatial Operations on
+<div id="SpatialOperationsVector" class="section level2" number="2.6">
+<h2><span class="header-section-number">2.6</span> Spatial Operations on
 vector data</h2>
-<div id="spatial-subsetting" class="section level3" number="2.5.1">
-<h3><span class="header-section-number">2.5.1</span> 1. Spatial
+<div id="spatial-subsetting" class="section level3" number="2.6.1">
+<h3><span class="header-section-number">2.6.1</span> 1. Spatial
 subsetting</h3>
 <p>syntax <code>x[y, , op = st_intersects]</code>: + <code>x</code> is
 an sf object from which a subset of rows will be returned * point +
 <code>y</code> is the ’subsetting object * polygon</p>
 <pre class="r"><code>canterbury_height = nz_height[canterbury, ]</code></pre>
 </div>
-<div id="ifelse-with-spatial-condition" class="section level3" number="2.5.2">
-<h3><span class="header-section-number">2.5.2</span> 2.
+<div id="ifelse-with-spatial-condition" class="section level3" number="2.6.2">
+<h3><span class="header-section-number">2.6.2</span> 2.
 <code>ifelse</code> with spatial condition</h3>
 <p>Use <code>st_intersects</code> for the condition: + syntax
 <code>st_intersects(x, y)</code>:</p>
@@ -1684,6 +1704,42 @@ an sf object from which a subset of rows will be returned * point +
   mutate(Ogallala = 
     ifelse(st_intersects(., hp_bd, sparse = FALSE), 1, 0)
     )</code></pre>
+</div>
+</div>
+<div id="cropping-and-masking-croppingmasking" class="section level2" number="2.7">
+<h2><span class="header-section-number">2.7</span> Cropping and Masking
+{#Cropping&amp;Masking}</h2>
+<p><strong>Crop</strong>: crop returns a <em>geographic subset of an
+object</em> as specified by an Extent object (or object from which an
+extent object can be extracted/created) <strong>Mask</strong>: Create a
+new Raster<span class="math inline">\(^*\)</span> object that has the
+same values as <code>x</code>, except for the cells that are
+<code>NA</code> (or other <code>maskvalue</code>) in a
+<code>mask</code>. These cells become <code>NA</code> (or other
+<code>updatevalue</code>).</p>
+<div id="cropping" class="section level3" number="2.7.1">
+<h3><span class="header-section-number">2.7.1</span> Cropping</h3>
+<ul>
+<li><code>terra::crop(SpatRaster, sf)</code>
+<ul>
+<li>NOTE: the cropped raster layer extends beyond the outer boundary of
+the polygon</li>
+</ul></li>
+</ul>
+</div>
+<div id="masking" class="section level3" number="2.7.2">
+<h3><span class="header-section-number">2.7.2</span> Masking</h3>
+<ul>
+<li><code>terra::mask(x=SpatRaster, mask=SpatVector)</code>
+<ul>
+<li>If <code>x</code> is a <code>SpatRaster</code>: Create a new
+SpatRaster that has the same values as SpatRaster <code>x</code>, except
+for the cells that are <code>NA</code> (or another
+<code>maskvalue</code>) in another SpatRaster (the ‘mask’), or not
+covered by a SpatVector. These cells become <code>NA</code> (or another
+<code>updatevalue</code>).</li>
+</ul></li>
+</ul>
 <hr />
 </div>
 </div>

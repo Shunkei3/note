@@ -70,6 +70,7 @@ library(gt)
 ## Topics
 + [Download state, county border](#DonloadStateBoundary)
 + [Make boundary sf object from multi-polygons](#MakeBoundary)
++ [Finding appropriate CRS](#CRS)
 + [Create X, Y columns](#CreateXYColumns)
 + [Make sf object from data.table](#Makesf)
 + [Spatial Operations on vector data](#SpatialOperationsVector)
@@ -77,12 +78,17 @@ library(gt)
   * 1. Spatial subsetting
   * 2. `ifelse` with spatial condition
 + [Cropping and Masking](#Cropping&Masking)
++ [Get population density map](#popden)
 
 
 ## Useful Functions
 
 + [**map()**](#map)
-  * Draw lines and polygons as specified by a map database
+  * Draw lines and polygons as sp
+
+  ## Finding appropriate CRS{#CRS}ecified by a map database
+  
+
 
 + [**values()**](#value)
   * returns the raster cell values for a RasterLayer or RasterBrick object that are currently in memory
@@ -153,6 +159,23 @@ st_union()
 <br>
 
 
+## Finding appropriate CRS{#CRS}
+
++ `crsuggest::suggest_crs()`: 
+  * returns a tibble of possible choices for a suitable projected CRS for your data 
+
+
+```{r}
+fl_counties <- counties("FL", cb = TRUE)
+
+suggest_crs(fl_counties)
+```
+
+<br>
+
+<br>
+
+
 ## Create X, Y columns {#CreateXYColumns}
 
 ```{r}
@@ -208,6 +231,12 @@ tg_corelogic_sf <-
     )
 ```
 
+
+<br>
+
+<br>
+
+
 ## Cropping and Masking {#Cropping&Masking}
 
 **Crop**: crop returns a *geographic subset of an object* as specified by an Extent object (or object from which an extent object can be extracted/created)
@@ -221,6 +250,37 @@ tg_corelogic_sf <-
 ### Masking
 + `terra::mask(x=SpatRaster, mask=SpatVector)`
   * If `x` is a `SpatRaster`: Create a new SpatRaster that has the same values as SpatRaster `x`, except for the cells that are `NA` (or another `maskvalue`) in another SpatRaster (the 'mask'), or not covered by a SpatVector. These cells become `NA` (or another `updatevalue`).
+
+
+<br>
+
+
+<br>
+
+## Get population density map {#popden}
+
+```{r}
+dfw_data <- get_acs(
+  geography = "tract",
+  variables =  c(total_population = "B01003_001"),
+  state = "TX",
+  county = "Dallas",
+  geometry = TRUE,
+  output = "wide",
+  year = 2020
+) %>%
+  select(-NAME) %>%
+  st_transform(32138) # NAD83 / Texas North Central
+
+dfw_data_for_model <- 
+  dfw_data %>%
+  mutate(
+    pop_density = as.numeric(set_units(total_populationE / st_area(.), "1/km2")),
+    median_structure_age = 2018 - median_year_builtE) %>%
+  select(!ends_with("M")) %>% 
+  rename_with(.fn = ~str_remove(.x, "E$")) %>%
+  na.omit()
+```
 
 
 

@@ -76,8 +76,11 @@ library(gt)
 + [Find the percentage of NA](#FindNA)
 + [lubridate: Date-time data](#lubridate)
 + [Extract Subset of Data Frame Rows Containing NA](#ExtractNArows)
-+ [Select groups which have at least one of a certain value](#selectgroup)
-+ 
++ [Select rows that met some criterion by group](#selectgroup)
++ [Create new column by concatenating values in other columns](#concantenate)
++ [Change units](#ChangeUnits)
+
+
 
 ## A list of useful functions
 
@@ -223,6 +226,7 @@ check_comp_LR <-
   .[, num_y := rowSums(.SD), by = nrd_owner_name]
 ```
 
+<br>
 
 <br>
 
@@ -232,6 +236,10 @@ check_comp_LR <-
 fs::dir_ls(here("Codes", "Functions", "R"), full.names = TRUE) %>%
   lapply(., function(x) source(x))
 ```
+
+<br>
+
+<br>
 
 ## Manage strings {#ManageStrings}
 
@@ -303,6 +311,87 @@ str_sub(x,-6,-1)
 + `str_split`: solit up a string into pieces
 
 
+### stringr {#stringr}
+
++ `str_detect()`
+  * Package "stringr"
+  * Vectorised over string and pattern.
+  * `str_detect(string, pattern, negate=FALSE)`
+
+```{r}
+tif_file_names <- list.files(path="./Data/HPA_sat_thickness_inputs" , pattern="*.tif", full.names=TRUE) %>% 
+  .[!str_detect(.,'tif.')]
+
+fruit <- c("apple", "banana", "pear", "pinapple")
+str_detect(fruit, "a")       #ans. [1] TRUE TRUE TRUE TRUE
+str_detect(fruit, "^a")      #ans. [1]  TRUE FALSE FALSE FALSE
+str_detect(fruit, "a$")      #ans. [1] FALSE  TRUE FALSE FALSE
+str_detect(fruit, "b")       #ans. [1] FALSE  TRUE FALSE FALSE
+str_detect(fruit, "[aeiou]") #ans. [1] TRUE TRUE TRUE TRUE
+```
+
++ `^` : now matches the start of each line
++ `$` : now matches the end of each line
++ `\A` : matches the start of the input
++ `\z` : matches the end of the input
++ `\Z` : matches the end of the input, but before the final line terminator, if exists
+
+
+
++ `str_replace()`
+  * Replace matched pattern in a string
+  * str_replace(string, pattern, replacement)
+
+```{r}
+names(reg_data_5mi) <- str_replace(names(reg_data_5mi), "_r", "")
+```
+
+
++ `str_remove(string, pattern)`
+
+
+```{r}
+metros <-  get_acs(
+  geography = "cbsa",
+  variables = "DP03_0021P",
+  summary_var = "B01003_001",
+  survey = "acs1",
+  year = 2019
+) %>%
+  slice_max(summary_est, n = 20)
+
+
+# first remove all the text after the first dash, then remove the text after the first comma if no dash was originally present. 
+metros %>%
+  mutate(NAME = str_remove(NAME, "-.*$")) %>%
+  mutate(NAME = str_remove(NAME, ",.*$")) %>%
+  ggplot(aes(y = reorder(NAME, estimate), x = estimate)) + 
+  geom_col()
+```
+
+
+```{r}
+maine <- get_decennial(
+  state = "Maine",
+  geography = "county",
+  variables = c(totalpop = "P1_001N"),
+  year = 2020
+) %>%
+  arrange(desc(value))
+
+maine_income <- get_acs(
+  state = "Maine",
+  geography = "county",
+  variables = c(hhincome = "B19013_001"),
+  year = 2020
+) %>%
+  mutate(NAME = str_remove(NAME, " County, Maine"))
+```
+
+<br>
+
+<br>
+
 ## Basic Statics Summary {#SummaryTable}
 
 + modelsummary
@@ -328,6 +417,9 @@ custom_theme <- function(x, ...) {
 options("modelsummary_theme_gt" = custom_theme)
 ```
 
+<br>
+
+<br>
 
 ## Check whether a column has NA values or not {#CheckNA}
 
@@ -335,12 +427,19 @@ options("modelsummary_theme_gt" = custom_theme)
 sapply(temp, function(x) any(is.na(x)))
 ```
 
+<br>
+
+<br>
 
 ## Find the percentage of NA {#FindNA}
 
 ```{r}
 sapply(data, function(x) sum(is.na(x)) / nrow(property_basic_meta))
 ```
+
+<br>
+
+<br>
 
 ## `lubridate`: Date-time data {#lubridate}
 
@@ -372,6 +471,9 @@ as_date(days_since_base, origin = "1900-01-01")
 .[, date := as.Date.numeric(days_since_base, origin = "1900-01-01")] %>%
 ```
 
+<br>
+
+<br>
 
 ## Extract Subset of Data Frame Rows Containing NA {#ExtractNArows}
 
@@ -394,8 +496,13 @@ data[rowSums(is.na(data)) > 0, ]               # Missings in any row
 data[is.na(data$x1), ]   
 ```
 
+<br>
 
-## Select groups which have at least one of a certain value {#selectgroup}
+<br>
+
+## Select rows that met some criterion by group: {#selectgroup}
+
+### groups which have at least one of a certain value
 + check [this](https://stackoverflow.com/questions/40825037/select-groups-which-have-at-least-one-of-a-certain-value)
 
 ```{r}
@@ -404,6 +511,53 @@ se_cdl_value <-
   .[, .SD[any(Layer_1 %in% se_codes)], by = ID] %>%
   dcast(ID ~ type, value.var = "Layer_1") 
 ```
+
+### groups where all have one of a certain value {#selectgroup}
+
+```{r}
+noag_cdl_value_ <- 
+  cdl_value %>% 
+  .[, .SD[all(Layer_1 %in% nonAg_codes)], by = ID] %>%
+  dcast(ID ~ type, value.var = "Layer_1") 
+```
+
+
+<br>
+
+<br>
+
+## Create new column by concatenating values in other columns {#concantenate}
+
+```{r}
+test <- 
+  ag_cdl_value %>% 
+  # .[ID %in% c(1,6, 10),] %>%
+  linkdata[., on = "MasterCat==Layer_1"] %>%
+  .[, hist_crop :=  paste(unique(.SD[,MasterCat])%>% sort(.), collapse="," ), by = ID] %>%
+  dcast(ID + hist_crop~ type, value.var = "MasterCat")
+```
+
+<br>
+
+<br>
+
+## Change units {#ChangeUnits}
+
++ `set_units()`  from `units` package [Here](https://cran.r-project.org/web/packages/units/vignettes/units.html)
+
+```{r}
+library(units)
+
+dfw_data_for_model <- dfw_data %>%
+  # number of people in each Census tract per square kilometer
+  mutate(pop_density = as.numeric(set_units(total_populationE / st_area(.), "1/km2")),
+         median_structure_age = 2018 - median_year_builtE) %>%
+  select(!ends_with("M")) %>% 
+  rename_with(.fn = ~str_remove(.x, "E$")) %>%
+  na.omit()
+```
+
+
 
 
 ---
@@ -495,41 +649,6 @@ download( url = , destfile = , mode = ‘web’ )
 
 <br>
 
-
-## stringr {#stringr}
-
-+ `str_detect()`
-	* Package "stringr"
-	* Vectorised over string and pattern.
-	* `str_detect(string, pattern, negate=FALSE)`
-
-```{r}
-tif_file_names <- list.files(path="./Data/HPA_sat_thickness_inputs" , pattern="*.tif", full.names=TRUE) %>% 
-  .[!str_detect(.,'tif.')]
-
-fruit <- c("apple", "banana", "pear", "pinapple")
-str_detect(fruit, "a")       #ans. [1] TRUE TRUE TRUE TRUE
-str_detect(fruit, "^a")      #ans. [1]  TRUE FALSE FALSE FALSE
-str_detect(fruit, "a$")      #ans. [1] FALSE  TRUE FALSE FALSE
-str_detect(fruit, "b")       #ans. [1] FALSE  TRUE FALSE FALSE
-str_detect(fruit, "[aeiou]") #ans. [1] TRUE TRUE TRUE TRUE
-```
-
-+ `^` : now matches the start of each line
-+ `$` : now matches the end of each line
-+ `\A` : matches the start of the input
-+ `\z` : matches the end of the input
-+ `\Z` : matches the end of the input, but before the final line terminator, if exists
-
-
-
-+ `str_replace()`
-  * Replace matched pattern in a string
-  * str_replace(string, pattern, replacement)
-
-```{r}
-names(reg_data_5mi) <- str_replace(names(reg_data_5mi), "_r", "")
-```
 
 ## list.files() {#listfiles}
 

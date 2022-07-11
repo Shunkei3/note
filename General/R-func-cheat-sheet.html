@@ -1549,9 +1549,11 @@ not</a></li>
 <li><a href="#lubridate">lubridate: Date-time data</a></li>
 <li><a href="#ExtractNArows">Extract Subset of Data Frame Rows
 Containing NA</a></li>
-<li><a href="#selectgroup">Select groups which have at least one of a
-certain value</a></li>
-<li></li>
+<li><a href="#selectgroup">Select rows that met some criterion by
+group</a></li>
+<li><a href="#concantenate">Create new column by concatenating values in
+other columns</a></li>
+<li><a href="#ChangeUnits">Change units</a></li>
 </ul>
 </div>
 <div id="a-list-of-useful-functions" class="section level2" number="1.2">
@@ -1730,6 +1732,7 @@ summation</h3>
   imputeTS::na_replace(fill = 0) %&gt;%
   .[, num_y := rowSums(.SD), by = nrd_owner_name]</code></pre>
 <p><br></p>
+<p><br></p>
 </div>
 </div>
 <div id="SourceFunction" class="section level2" number="2.2">
@@ -1737,6 +1740,8 @@ summation</h3>
 functions in the Functions folder</h2>
 <pre class="r"><code>fs::dir_ls(here(&quot;Codes&quot;, &quot;Functions&quot;, &quot;R&quot;), full.names = TRUE) %&gt;%
   lapply(., function(x) source(x))</code></pre>
+<p><br></p>
+<p><br></p>
 </div>
 <div id="ManageStrings" class="section level2" number="2.3">
 <h2><span class="header-section-number">2.3</span> Manage strings</h2>
@@ -1799,6 +1804,76 @@ str_sub(x,-6,-1)</code></pre>
 <ul>
 <li><code>str_split</code>: solit up a string into pieces</li>
 </ul>
+<div id="stringr" class="section level3" number="2.3.1">
+<h3><span class="header-section-number">2.3.1</span> stringr</h3>
+<ul>
+<li><code>str_detect()</code>
+<ul>
+<li>Package “stringr”</li>
+<li>Vectorised over string and pattern.</li>
+<li><code>str_detect(string, pattern, negate=FALSE)</code></li>
+</ul></li>
+</ul>
+<pre class="r"><code>tif_file_names &lt;- list.files(path=&quot;./Data/HPA_sat_thickness_inputs&quot; , pattern=&quot;*.tif&quot;, full.names=TRUE) %&gt;% 
+  .[!str_detect(.,&#39;tif.&#39;)]
+
+fruit &lt;- c(&quot;apple&quot;, &quot;banana&quot;, &quot;pear&quot;, &quot;pinapple&quot;)
+str_detect(fruit, &quot;a&quot;)       #ans. [1] TRUE TRUE TRUE TRUE
+str_detect(fruit, &quot;^a&quot;)      #ans. [1]  TRUE FALSE FALSE FALSE
+str_detect(fruit, &quot;a$&quot;)      #ans. [1] FALSE  TRUE FALSE FALSE
+str_detect(fruit, &quot;b&quot;)       #ans. [1] FALSE  TRUE FALSE FALSE
+str_detect(fruit, &quot;[aeiou]&quot;) #ans. [1] TRUE TRUE TRUE TRUE</code></pre>
+<ul>
+<li><p><code>^</code> : now matches the start of each line</p></li>
+<li><p><code>$</code> : now matches the end of each line</p></li>
+<li><p><code>\A</code> : matches the start of the input</p></li>
+<li><p><code>\z</code> : matches the end of the input</p></li>
+<li><p><code>\Z</code> : matches the end of the input, but before the
+final line terminator, if exists</p></li>
+<li><p><code>str_replace()</code></p>
+<ul>
+<li>Replace matched pattern in a string</li>
+<li>str_replace(string, pattern, replacement)</li>
+</ul></li>
+</ul>
+<pre class="r"><code>names(reg_data_5mi) &lt;- str_replace(names(reg_data_5mi), &quot;_r&quot;, &quot;&quot;)</code></pre>
+<ul>
+<li><code>str_remove(string, pattern)</code></li>
+</ul>
+<pre class="r"><code>metros &lt;-  get_acs(
+  geography = &quot;cbsa&quot;,
+  variables = &quot;DP03_0021P&quot;,
+  summary_var = &quot;B01003_001&quot;,
+  survey = &quot;acs1&quot;,
+  year = 2019
+) %&gt;%
+  slice_max(summary_est, n = 20)
+
+
+# first remove all the text after the first dash, then remove the text after the first comma if no dash was originally present. 
+metros %&gt;%
+  mutate(NAME = str_remove(NAME, &quot;-.*$&quot;)) %&gt;%
+  mutate(NAME = str_remove(NAME, &quot;,.*$&quot;)) %&gt;%
+  ggplot(aes(y = reorder(NAME, estimate), x = estimate)) + 
+  geom_col()</code></pre>
+<pre class="r"><code>maine &lt;- get_decennial(
+  state = &quot;Maine&quot;,
+  geography = &quot;county&quot;,
+  variables = c(totalpop = &quot;P1_001N&quot;),
+  year = 2020
+) %&gt;%
+  arrange(desc(value))
+
+maine_income &lt;- get_acs(
+  state = &quot;Maine&quot;,
+  geography = &quot;county&quot;,
+  variables = c(hhincome = &quot;B19013_001&quot;),
+  year = 2020
+) %&gt;%
+  mutate(NAME = str_remove(NAME, &quot; County, Maine&quot;))</code></pre>
+<p><br></p>
+<p><br></p>
+</div>
 </div>
 <div id="SummaryTable" class="section level2" number="2.4">
 <h2><span class="header-section-number">2.4</span> Basic Statics
@@ -1824,16 +1899,22 @@ custom_theme &lt;- function(x, ...) {
     x %&gt;% gt::opt_row_striping(row_striping = TRUE)
 }
 options(&quot;modelsummary_theme_gt&quot; = custom_theme)</code></pre>
+<p><br></p>
+<p><br></p>
 </div>
 <div id="CheckNA" class="section level2" number="2.5">
 <h2><span class="header-section-number">2.5</span> Check whether a
 column has NA values or not</h2>
 <pre class="r"><code>sapply(temp, function(x) any(is.na(x)))</code></pre>
+<p><br></p>
+<p><br></p>
 </div>
 <div id="FindNA" class="section level2" number="2.6">
 <h2><span class="header-section-number">2.6</span> Find the percentage
 of NA</h2>
 <pre class="r"><code>sapply(data, function(x) sum(is.na(x)) / nrow(property_basic_meta))</code></pre>
+<p><br></p>
+<p><br></p>
 </div>
 <div id="lubridate" class="section level2" number="2.7">
 <h2><span class="header-section-number">2.7</span>
@@ -1856,6 +1937,8 @@ as_date(days_since_base, origin = &quot;1900-01-01&quot;)</code></pre>
 <li>zoo package</li>
 </ul>
 <pre class="r"><code>.[, date := as.Date.numeric(days_since_base, origin = &quot;1900-01-01&quot;)] %&gt;%</code></pre>
+<p><br></p>
+<p><br></p>
 </div>
 <div id="ExtractNArows" class="section level2" number="2.8">
 <h2><span class="header-section-number">2.8</span> Extract Subset of
@@ -1867,10 +1950,15 @@ Data Frame Rows Containing NA</h2>
 <pre class="r"><code>data[rowSums(is.na(data)) &gt; 0, ]               # Missings in any row</code></pre>
 <p><strong>Extract Rows with NA in Specific Column</strong></p>
 <pre class="r"><code>data[is.na(data$x1), ]   </code></pre>
+<p><br></p>
+<p><br></p>
 </div>
 <div id="selectgroup" class="section level2" number="2.9">
-<h2><span class="header-section-number">2.9</span> Select groups which
-have at least one of a certain value</h2>
+<h2><span class="header-section-number">2.9</span> Select rows that met
+some criterion by group:</h2>
+<div id="groups-which-have-at-least-one-of-a-certain-value" class="section level3" number="2.9.1">
+<h3><span class="header-section-number">2.9.1</span> groups which have
+at least one of a certain value</h3>
 <ul>
 <li>check <a href="https://stackoverflow.com/questions/40825037/select-groups-which-have-at-least-one-of-a-certain-value">this</a></li>
 </ul>
@@ -1878,6 +1966,44 @@ have at least one of a certain value</h2>
   cdl_value %&gt;% 
   .[, .SD[any(Layer_1 %in% se_codes)], by = ID] %&gt;%
   dcast(ID ~ type, value.var = &quot;Layer_1&quot;) </code></pre>
+</div>
+<div id="selectgroup" class="section level3" number="2.9.2">
+<h3><span class="header-section-number">2.9.2</span> groups where all
+have one of a certain value</h3>
+<pre class="r"><code>noag_cdl_value_ &lt;- 
+  cdl_value %&gt;% 
+  .[, .SD[all(Layer_1 %in% nonAg_codes)], by = ID] %&gt;%
+  dcast(ID ~ type, value.var = &quot;Layer_1&quot;) </code></pre>
+<p><br></p>
+<p><br></p>
+</div>
+</div>
+<div id="concantenate" class="section level2" number="2.10">
+<h2><span class="header-section-number">2.10</span> Create new column by
+concatenating values in other columns</h2>
+<pre class="r"><code>test &lt;- 
+  ag_cdl_value %&gt;% 
+  # .[ID %in% c(1,6, 10),] %&gt;%
+  linkdata[., on = &quot;MasterCat==Layer_1&quot;] %&gt;%
+  .[, hist_crop :=  paste(unique(.SD[,MasterCat])%&gt;% sort(.), collapse=&quot;,&quot; ), by = ID] %&gt;%
+  dcast(ID + hist_crop~ type, value.var = &quot;MasterCat&quot;)</code></pre>
+<p><br></p>
+<p><br></p>
+</div>
+<div id="ChangeUnits" class="section level2" number="2.11">
+<h2><span class="header-section-number">2.11</span> Change units</h2>
+<ul>
+<li><code>set_units()</code> from <code>units</code> package <a href="https://cran.r-project.org/web/packages/units/vignettes/units.html">Here</a></li>
+</ul>
+<pre class="r"><code>library(units)
+
+dfw_data_for_model &lt;- dfw_data %&gt;%
+  # number of people in each Census tract per square kilometer
+  mutate(pop_density = as.numeric(set_units(total_populationE / st_area(.), &quot;1/km2&quot;)),
+         median_structure_age = 2018 - median_year_builtE) %&gt;%
+  select(!ends_with(&quot;M&quot;)) %&gt;% 
+  rename_with(.fn = ~str_remove(.x, &quot;E$&quot;)) %&gt;%
+  na.omit()</code></pre>
 <hr />
 </div>
 </div>
@@ -1972,49 +2098,15 @@ vi_all &lt;- sapply(all_results,&#39;[&#39;,3) %&gt;% rbindlist() %&gt;%
 <pre class="r"><code>download( url = , destfile = , mode = ‘web’ )</code></pre>
 <p><br></p>
 </div>
-<div id="stringr" class="section level2" number="3.8">
-<h2><span class="header-section-number">3.8</span> stringr</h2>
-<ul>
-<li><code>str_detect()</code>
-<ul>
-<li>Package “stringr”</li>
-<li>Vectorised over string and pattern.</li>
-<li><code>str_detect(string, pattern, negate=FALSE)</code></li>
-</ul></li>
-</ul>
-<pre class="r"><code>tif_file_names &lt;- list.files(path=&quot;./Data/HPA_sat_thickness_inputs&quot; , pattern=&quot;*.tif&quot;, full.names=TRUE) %&gt;% 
-  .[!str_detect(.,&#39;tif.&#39;)]
-
-fruit &lt;- c(&quot;apple&quot;, &quot;banana&quot;, &quot;pear&quot;, &quot;pinapple&quot;)
-str_detect(fruit, &quot;a&quot;)       #ans. [1] TRUE TRUE TRUE TRUE
-str_detect(fruit, &quot;^a&quot;)      #ans. [1]  TRUE FALSE FALSE FALSE
-str_detect(fruit, &quot;a$&quot;)      #ans. [1] FALSE  TRUE FALSE FALSE
-str_detect(fruit, &quot;b&quot;)       #ans. [1] FALSE  TRUE FALSE FALSE
-str_detect(fruit, &quot;[aeiou]&quot;) #ans. [1] TRUE TRUE TRUE TRUE</code></pre>
-<ul>
-<li><p><code>^</code> : now matches the start of each line</p></li>
-<li><p><code>$</code> : now matches the end of each line</p></li>
-<li><p><code>\A</code> : matches the start of the input</p></li>
-<li><p><code>\z</code> : matches the end of the input</p></li>
-<li><p><code>\Z</code> : matches the end of the input, but before the
-final line terminator, if exists</p></li>
-<li><p><code>str_replace()</code></p>
-<ul>
-<li>Replace matched pattern in a string</li>
-<li>str_replace(string, pattern, replacement)</li>
-</ul></li>
-</ul>
-<pre class="r"><code>names(reg_data_5mi) &lt;- str_replace(names(reg_data_5mi), &quot;_r&quot;, &quot;&quot;)</code></pre>
-</div>
-<div id="listfiles" class="section level2" number="3.9">
-<h2><span class="header-section-number">3.9</span> list.files()</h2>
+<div id="listfiles" class="section level2" number="3.8">
+<h2><span class="header-section-number">3.8</span> list.files()</h2>
 <p>produce charactervector of the names of files or directories in the
 named directory</p>
 <pre class="r"><code>tif_file_names &lt;- list.files(path=&quot;./Data/HPA_sat_thickness_inputs&quot; , pattern=&quot;*.tif&quot;, full.names=TRUE) %&gt;% 
   .[!str_detect(.,&#39;tif.&#39;)]</code></pre>
 </div>
-<div id="whileloop" class="section level2" number="3.10">
-<h2><span class="header-section-number">3.10</span> While loop</h2>
+<div id="whileloop" class="section level2" number="3.9">
+<h2><span class="header-section-number">3.9</span> While loop</h2>
 <p>A loop is a statement function that keeps running until a condition
 is satisfied.</p>
 <ul>
@@ -2032,8 +2124,8 @@ is satisfied.</p>
     number = number + 1
     }</code></pre>
 </div>
-<div id="shift" class="section level2" number="3.11">
-<h2><span class="header-section-number">3.11</span> shift()</h2>
+<div id="shift" class="section level2" number="3.10">
+<h2><span class="header-section-number">3.10</span> shift()</h2>
 <pre class="r"><code>.[, tau_stepwise := yield_hat - shift(yield_hat), by = unique_cell_id]</code></pre>
 </div>
 </div>
