@@ -1538,11 +1538,14 @@ div.tocify {
 <div id="topics" class="section level2" number="1.1">
 <h2><span class="header-section-number">1.1</span> Topics</h2>
 <ul>
+<li><a href="#CommonCRS">Common CRS</a>
+<ul>
+<li><a href="#CRS">Finding appropriate CRS</a></li>
+</ul></li>
 <li><a href="#DonloadStateBoundary">Download state, county
 border</a></li>
 <li><a href="#MakeBoundary">Make boundary sf object from
 multi-polygons</a></li>
-<li><a href="#CRS">Finding appropriate CRS</a></li>
 <li><a href="#CreateXYColumns">Create X, Y columns</a></li>
 <li><a href="#Makesf">Make sf object from data.table</a></li>
 <li><a href="#SpatialOperationsVector">Spatial Operations on vector
@@ -1557,6 +1560,7 @@ data</a>
 </ol></li>
 </ul></li>
 <li><a href="#Cropping&amp;Masking">Cropping and Masking</a></li>
+<li><a href="#popden">Get population density map</a></li>
 </ul>
 </div>
 <div id="useful-functions" class="section level2" number="1.2">
@@ -1614,8 +1618,60 @@ sf)</strong></span></p>
 </div>
 <div id="topics-1" class="section level1" number="2">
 <h1><span class="header-section-number">2</span> Topics</h1>
-<div id="DonloadStateBoundary" class="section level2" number="2.1">
-<h2><span class="header-section-number">2.1</span> Download state,
+<div id="common-crs" class="section level2" number="2.1">
+<h2><span class="header-section-number">2.1</span> + <a href="#CommonCRS">Common CRS</a></h2>
+<p>Read <a href="https://bookdown.org/mcwimberly/gdswr-book/coordinate-reference-systems.html">this</a></p>
+<ul>
+<li><p>Important componets of the CRS:</p>
+<ul>
+<li>“ellipsoid”: models the shape of the Earth</li>
+<li>“datum”: connects the ellipsoid to the surface of the earth</li>
+</ul></li>
+<li><p>To define a true two-dimensional Cartesian coordinate system, a
+map projection must be applied to translate the curved surface of the
+Earth onto a two-dimensional plane.</p></li>
+<li><p>“EPSG stands for European Petroleum Survey Group. They publish a
+database of coordinate system information plus some very good related
+documents on map projections and datums.”</p></li>
+<li><p>WGS 84 (EPSG:4326)</p>
+<ul>
+<li>World Geodetic System 1984</li>
+<li>Ellipsoidal 2D CS. Axes: latitude, longitude. Orientations: north,
+east. UoM: degree</li>
+</ul></li>
+<li><p>WGS 84 / UTM zone 14N (EPSG:32614)</p>
+<ul>
+<li>Cartesian 2D CS. Axes: easting, northing (E,N). Orientations: east,
+north. UoM: m.</li>
+<li>only covers the a portion of Midwest</li>
+</ul></li>
+<li><p>NAD 83 (EPSG:4269)</p>
+<ul>
+<li>North American Datum of 1983</li>
+<li>default CRS for <code>tigris</code> and All Cnesus Bureau
+datasets</li>
+</ul></li>
+<li><p>NAD83 / UTM zone 17N (EPSG:26917):</p></li>
+</ul>
+<div id="CRS" class="section level3" number="2.1.1">
+<h3><span class="header-section-number">2.1.1</span> Finding appropriate
+CRS</h3>
+<ul>
+<li><code>crsuggest::suggest_crs()</code>:
+<ul>
+<li>returns a tibble of possible choices for a suitable projected CRS
+for your data</li>
+</ul></li>
+</ul>
+<pre class="r"><code>fl_counties &lt;- counties(&quot;FL&quot;, cb = TRUE)
+
+suggest_crs(fl_counties)</code></pre>
+<p><br></p>
+<p><br></p>
+</div>
+</div>
+<div id="DonloadStateBoundary" class="section level2" number="2.2">
+<h2><span class="header-section-number">2.2</span> Download state,
 county border</h2>
 <ul>
 <li><code>tigris</code> package</li>
@@ -1632,8 +1688,8 @@ KS_county_sf &lt;-
 <p><br></p>
 <p><br></p>
 </div>
-<div id="MakeBoundary" class="section level2" number="2.2">
-<h2><span class="header-section-number">2.2</span> Make boundary sf
+<div id="MakeBoundary" class="section level2" number="2.3">
+<h2><span class="header-section-number">2.3</span> Make boundary sf
 object from multi-polygons</h2>
 <pre class="r"><code>field_base %&gt;%
   st_bbox() %&gt;%
@@ -1641,22 +1697,6 @@ object from multi-polygons</h2>
   st_as_sf()
 ## this might be better
 st_union()</code></pre>
-<p><br></p>
-<p><br></p>
-</div>
-<div id="CRS" class="section level2" number="2.3">
-<h2><span class="header-section-number">2.3</span> Finding appropriate
-CRS</h2>
-<ul>
-<li><code>crsuggest::suggest_crs()</code>:
-<ul>
-<li>returns a tibble of possible choices for a suitable projected CRS
-for your data</li>
-</ul></li>
-</ul>
-<pre class="r"><code>fl_counties &lt;- counties(&quot;FL&quot;, cb = TRUE)
-
-suggest_crs(fl_counties)</code></pre>
 <p><br></p>
 <p><br></p>
 </div>
@@ -1704,6 +1744,8 @@ an sf object from which a subset of rows will be returned * point +
   mutate(Ogallala = 
     ifelse(st_intersects(., hp_bd, sparse = FALSE), 1, 0)
     )</code></pre>
+<p><br></p>
+<p><br></p>
 </div>
 </div>
 <div id="cropping-and-masking-croppingmasking" class="section level2" number="2.7">
@@ -1740,8 +1782,34 @@ covered by a SpatVector. These cells become <code>NA</code> (or another
 <code>updatevalue</code>).</li>
 </ul></li>
 </ul>
-<hr />
+<p><br></p>
+<p><br></p>
 </div>
+</div>
+<div id="popden" class="section level2" number="2.8">
+<h2><span class="header-section-number">2.8</span> Get population
+density map</h2>
+<pre class="r"><code>dfw_data &lt;- get_acs(
+  geography = &quot;tract&quot;,
+  variables =  c(total_population = &quot;B01003_001&quot;),
+  state = &quot;TX&quot;,
+  county = &quot;Dallas&quot;,
+  geometry = TRUE,
+  output = &quot;wide&quot;,
+  year = 2020
+) %&gt;%
+  select(-NAME) %&gt;%
+  st_transform(32138) # NAD83 / Texas North Central
+
+dfw_data_for_model &lt;- 
+  dfw_data %&gt;%
+  mutate(
+    pop_density = as.numeric(set_units(total_populationE / st_area(.), &quot;1/km2&quot;)),
+    median_structure_age = 2018 - median_year_builtE) %&gt;%
+  select(!ends_with(&quot;M&quot;)) %&gt;% 
+  rename_with(.fn = ~str_remove(.x, &quot;E$&quot;)) %&gt;%
+  na.omit()</code></pre>
+<hr />
 </div>
 </div>
 <div id="useful-functions-1" class="section level1" number="3">

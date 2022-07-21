@@ -68,9 +68,10 @@ library(gt)
 # Content
 
 ## Topics
++ [Common CRS](#CommonCRS)
+  * [Finding appropriate CRS](#CRS)
 + [Download state, county border](#DonloadStateBoundary)
 + [Make boundary sf object from multi-polygons](#MakeBoundary)
-+ [Finding appropriate CRS](#CRS)
 + [Create X, Y columns](#CreateXYColumns)
 + [Make sf object from data.table](#Makesf)
 + [Spatial Operations on vector data](#SpatialOperationsVector)
@@ -123,6 +124,55 @@ library(gt)
 
 # Topics
 
+## + [Common CRS](#CommonCRS)
+
+Read [this](https://bookdown.org/mcwimberly/gdswr-book/coordinate-reference-systems.html)
+
++ Important componets of the CRS:
+  * "ellipsoid": models the shape of the Earth
+  * "datum": connects the ellipsoid to the surface of the earth
+
++ To define a true two-dimensional Cartesian coordinate system, a map projection must be applied to translate the curved surface of the Earth onto a two-dimensional plane.
+
++ "EPSG stands for European Petroleum Survey Group. They publish a database of coordinate system information plus some very good related documents on map projections and datums."
+
+
++ WGS 84 (EPSG:4326)
+  *  World Geodetic System 1984
+  *  Ellipsoidal 2D CS. Axes: latitude, longitude. Orientations: north, east. UoM: degree
+
++ WGS 84 / UTM zone 14N (EPSG:32614)
+  * Cartesian 2D CS. Axes: easting, northing (E,N). Orientations: east, north. UoM: m.
+  * only covers the a portion of Midwest 
+
+
++ NAD 83 (EPSG:4269)
+  * North American Datum of 1983 
+  * default CRS for `tigris` and All Cnesus Bureau datasets
+  
++ NAD83 / UTM zone 17N (EPSG:26917):
+
+
+
+
+
+### Finding appropriate CRS{#CRS}
+
++ `crsuggest::suggest_crs()`: 
+  * returns a tibble of possible choices for a suitable projected CRS for your data 
+
+
+```{r}
+fl_counties <- counties("FL", cb = TRUE)
+
+suggest_crs(fl_counties)
+```
+
+<br>
+
+<br>
+
+
 ## Download state, county border {#DonloadStateBoundary}
 
 + `tigris` package 
@@ -152,23 +202,6 @@ field_base %>%
   st_as_sf()
 ## this might be better
 st_union()
-```
-
-<br>
-
-<br>
-
-
-## Finding appropriate CRS{#CRS}
-
-+ `crsuggest::suggest_crs()`: 
-  * returns a tibble of possible choices for a suitable projected CRS for your data 
-
-
-```{r}
-fl_counties <- counties("FL", cb = TRUE)
-
-suggest_crs(fl_counties)
 ```
 
 <br>
@@ -231,6 +264,15 @@ tg_corelogic_sf <-
     )
 ```
 
+
+```{r}
+land_dt_cdl_census <- 
+  land_dt_cdl_sf %>%
+  mutate(
+    urban = 
+    ifelse(st_intersects(., us_urban_areas, sparse = FALSE)[, 1], 1, 0)
+  )
+```
 
 <br>
 

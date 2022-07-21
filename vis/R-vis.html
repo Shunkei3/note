@@ -1544,12 +1544,15 @@ div.tocify {
 </ul></li>
 <li><a href="#CorrelationMap"><strong>Descriptive Statistical:
 ggpairs()</strong></a></li>
-<li><a href="#theme"><strong>theme() of ggplot2</strong></a></li>
+<li><a href="#theme"><strong>theme() and guide() of ggplot2</strong></a>
+<ul>
+<li>position of legend</li>
+<li>change size of points in legend</li>
+</ul></li>
 <li><a href="#GgplotFacetLavels"><strong>Change ggplot facet
 lavels</strong></a></li>
 <li><a href="#ChangeLegendName"><strong>Modify the
 legend</strong></a></li>
-<li><a href="#theme"><strong>Theme option</strong></a></li>
 <li><a href="#RasterFascet"><strong>Plot Raster with
 facet</strong></a></li>
 </ul>
@@ -1633,6 +1636,14 @@ tm_shape(hp_bd) +
   tm_borders(col=&quot;blue&quot;, lwd = 1.5) +
 tm_shape(unique_tg_corelogic_sf) +
   tm_symbols(col = &quot;Ogallala&quot;, shape = 19, size = 0.001)</code></pre>
+<ul>
+<li>tamp with leaflet</li>
+</ul>
+<pre class="r"><code>tmap_leaflet(
+  tm_shape(ne_tract) + 
+    tm_polygons(col=&quot;pop_density&quot;)
+    # tm_fill(col=&quot;totalpop&quot;)
+)</code></pre>
 </div>
 <div id="CorrelationMap" class="section level2" number="2.2">
 <h2><span class="header-section-number">2.2</span> Descriptive
@@ -1655,9 +1666,36 @@ pm &lt;- ggpairs(
 <div id="theme" class="section level2" number="2.3">
 <h2><span class="header-section-number">2.3</span> theme() of
 ggplot2</h2>
-<ul>
-<li>tweak a map to make it much nicer look</li>
-</ul>
+<pre class="r"><code>theme_figure &lt;-
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    rect = element_blank(),
+    text = element_text(family = &quot;Times New Roman&quot;)
+  )
+
+theme_dist &lt;-
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    strip.text.x = element_text(size = 12, face = &quot;bold&quot;),
+    strip.text.y = element_text(size = 12, face = &quot;bold&quot;),
+    legend.title = element_text(size = 12, face = &quot;bold&quot;),
+    legend.text = element_text(size = 12, face = &quot;bold&quot;),
+    legend.position = &quot;bottom&quot;,
+    text = element_text(family = &quot;Times New Roman&quot;)
+  )</code></pre>
+<div id="how-to-increase-the-size-of-points-in-legend-of-ggplot2" class="section level3" number="2.3.1">
+<h3><span class="header-section-number">2.3.1</span> How to increase the
+size of points in legend of ggplot2?</h3>
+<pre class="r"><code>+ guides(colour = guide_legend(override.aes = list(size=10)))</code></pre>
+</div>
+<div id="tweak-a-map-to-make-it-much-nicer-look" class="section level3" number="2.3.2">
+<h3><span class="header-section-number">2.3.2</span> tweak a map to make
+it much nicer look</h3>
 <pre class="r"><code>g_base + theme(axis.text = element_blank())     
 
 theme_for_map &lt;- theme(
@@ -1671,8 +1709,9 @@ theme_for_map &lt;- theme(
 )
 
 g_base + theme_for_map</code></pre>
-<div id="GgplotFacetLavels" class="section level3" number="2.3.1">
-<h3><span class="header-section-number">2.3.1</span> Change ggplot facet
+</div>
+<div id="GgplotFacetLavels" class="section level3" number="2.3.3">
+<h3><span class="header-section-number">2.3.3</span> Change ggplot facet
 lavels</h3>
 <pre class="r"><code>library(ggplot2)
 theme_set(
@@ -1704,16 +1743,16 @@ p + facet_grid(
   labeller = labeller(dose = dose.labs, supp = supp.labs)
   )</code></pre>
 </div>
-<div id="change-legend-position-1" class="section level3" number="2.3.2">
-<h3><span class="header-section-number">2.3.2</span> Change legend
+<div id="change-legend-position-1" class="section level3" number="2.3.4">
+<h3><span class="header-section-number">2.3.4</span> Change legend
 position (1)</h3>
 <pre class="r"><code>g_legend + 
     scale_fill_viridis_c() + 
     labs(fill = &quot;Groundwater pumping (acre-feet)&quot;) +
     theme(legend.position = &quot;bottom&quot;)</code></pre>
 </div>
-<div id="change-legend-position-2" class="section level3" number="2.3.3">
-<h3><span class="header-section-number">2.3.3</span> Change legend
+<div id="change-legend-position-2" class="section level3" number="2.3.5">
+<h3><span class="header-section-number">2.3.5</span> Change legend
 position (2)</h3>
 <ul>
 <li>have the legend title on top of the color bar with guides()</li>
@@ -1724,8 +1763,8 @@ position (2)</h3>
     theme(legend.position = &quot;bottom&quot;) +
     guides(fill = guide_colorbar (title.position=&quot;top&quot;))</code></pre>
 </div>
-<div id="elongate-the-color-bar-and-make-the-legend-thinner" class="section level3" number="2.3.4">
-<h3><span class="header-section-number">2.3.4</span> Elongate the color
+<div id="elongate-the-color-bar-and-make-the-legend-thinner" class="section level3" number="2.3.6">
+<h3><span class="header-section-number">2.3.6</span> Elongate the color
 bar and make the legend thinner</h3>
 <p>with <code>legend.key.width =</code> option and
 <code>legend.key.height=</code> for <code>theme()</code></p>
@@ -1804,36 +1843,11 @@ the legend.</li>
   scale_color_hue(labels = c(&quot;Wells inside of the buffer&quot;, &quot;Wells outside of the buffer&quot;))
   ggtitle(&quot;(1) Wells within the 5 mile buffer&quot;)</code></pre>
 </div>
-<div id="theme" class="section level2" number="2.5">
-<h2><span class="header-section-number">2.5</span> Theme option</h2>
-<pre class="r"><code>theme_figure &lt;-
-  theme(
-    plot.title = element_text(hjust = 0.5),
-    axis.text.x = element_blank(),
-    axis.text.y = element_blank(),
-    axis.ticks = element_blank(),
-    rect = element_blank(),
-    text = element_text(family = &quot;Times New Roman&quot;)
-  )
-
-theme_dist &lt;-
-  theme_bw() +
-  theme(
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
-    strip.text.x = element_text(size = 12, face = &quot;bold&quot;),
-    strip.text.y = element_text(size = 12, face = &quot;bold&quot;),
-    legend.title = element_text(size = 12, face = &quot;bold&quot;),
-    legend.text = element_text(size = 12, face = &quot;bold&quot;),
-    legend.position = &quot;bottom&quot;,
-    text = element_text(family = &quot;Times New Roman&quot;)
-  )</code></pre>
-</div>
-<div id="RasterFascet" class="section level2" number="2.6">
-<h2><span class="header-section-number">2.6</span> Plot Raster with
+<div id="RasterFascet" class="section level2" number="2.5">
+<h2><span class="header-section-number">2.5</span> Plot Raster with
 facet</h2>
-<div id="ggplot2" class="section level3" number="2.6.1">
-<h3><span class="header-section-number">2.6.1</span>
+<div id="ggplot2" class="section level3" number="2.5.1">
+<h3><span class="header-section-number">2.5.1</span>
 <code>ggplot2</code></h3>
 <pre class="r"><code>test &lt;-  
   as.data.frame(pr_all, xy = TRUE) %&gt;%
@@ -1854,8 +1868,8 @@ facet</h2>
     ) +
     labs(fill = &quot;In-season precipitation (inches)&quot;) </code></pre>
 </div>
-<div id="rastervis" class="section level3" number="2.6.2">
-<h3><span class="header-section-number">2.6.2</span>
+<div id="rastervis" class="section level3" number="2.5.2">
+<h3><span class="header-section-number">2.5.2</span>
 <code>rasterVis</code></h3>
 <pre class="r"><code>library(rasterVis)
 vis_pr &lt;- 

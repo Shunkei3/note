@@ -79,7 +79,8 @@ library(gt)
 + [Select rows that met some criterion by group](#selectgroup)
 + [Create new column by concatenating values in other columns](#concantenate)
 + [Change units](#ChangeUnits)
-
++ [Vectorization instead of looping with lapply](#Vectorization)
++ [Separate strings stored in a single column into multiple columns](#Separate)
 
 
 ## A list of useful functions
@@ -557,7 +558,133 @@ dfw_data_for_model <- dfw_data %>%
   na.omit()
 ```
 
+<br>
 
+<br>
+
+
+## Vectorization instead of looping with lapply {#Vectorization}
+
+
+```{r}
+sim_par <- function(i, var_ls, reg_data, test_data, N_levels) {
+  print(paste0("working on ", i, " th iteration."))
+  # i = 1; var_ls = c("alpha", "beta", "ymax")
+  # reg_data = train_dt; test_data = test_dt; N_levels = N_levels
+
+  # /*----------------------------------*/
+  #' ## run ML analyses
+  # /*----------------------------------*/
+
+  #--- all the cases to consider ---#
+  case_data <- 
+    tibble(
+      Method = c("CF_base", "BRF", "RF")    
+    )
+
+  results_data <- 
+    case_data %>%
+      mutate(
+        opt_N_data = future_lapply(
+          seq_len(nrow(.)),
+          function(x) {
+            ### === apply various methods to get optimal N ===###
+            get_opt_N(
+              reg_data = reg_data,
+              test_data = test_data,
+              var_ls = var_ls,
+              rates_ls = N_levels,
+              Method = .$Method[[x]]
+            )
+          },
+        future.seed = TRUE
+      )
+    )%>%
+    unnest(., cols= "opt_N_data")%>%
+    data.table()
+
+  return(results_data)
+     
+}
+```
+
+```{r}
+test <- 
+  tibble(
+    type = 2008:2010
+    ) %>%
+  mutate(
+    cdl = mclapply(
+      seq_len(nrow(.)),
+      function(x){ 
+        terra::extract(
+              rast(here(paste0("Shared/Data/H&K/CDL/cdl_",.$type[[x]],".tif"))),
+              vect(land_dt_unq_sf)
+            ) %>%
+            data.table() %>%
+            cbind(., land_dt_unq[,.(X, Y)])
+        },
+        mc.cores = 4
+      )
+  )
+
+unnest(test, cdl) %>% data.table()
+
+
+
+get_cdl <- function(year){
+            terra::extract(
+              rast(here(paste0("Shared/Data/H&K/CDL/cdl_",year,".tif"))),
+              vect(land_dt_unq_sf)
+            ) %>%
+            data.table() %>%
+            .[,type := paste0("cdl",year)] %>%
+            cbind(., land_dt_unq[,.(X, Y)])
+          }
+
+test <- 
+  tibble(
+    type = 2008:2010
+    ) %>%
+  mutate(
+    cdl = mclapply(
+      seq_len(nrow(.)),
+      function(x){ 
+        terra::extract(
+              rast(here(paste0("Shared/Data/H&K/CDL/cdl_",.$type[[x]],".tif"))),
+              vect(land_dt_unq_sf)
+            ) %>%
+            data.table() %>%
+            cbind(., land_dt_unq[,.(X, Y)])
+        },
+        mc.cores = 4
+      )
+  )
+
+
+test <- 
+  tibble(
+    type = 2008:2012
+    ) %>%
+  rowwise() %>%
+  mutate(
+    cdl = list(get_cdl(year=type))
+  )
+```
+
+
+
+## Separate strings stored in a single column into multiple columns {#Separate}
+
+
+```{r}
+df <- data.frame(x = c(NA, "x.y", "x.z", "y.z"))
+df %>% separate(x, c("A", "B"))
+```
+
+```{r}
+separate(NAME, c("block", "BrockGroup", "CensusTract", "County", "State"), sep=", ") %>%
+```
 
 
 ---

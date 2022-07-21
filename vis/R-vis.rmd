@@ -71,11 +71,14 @@ library(gt)
 + [**tmap package**](#tmap)
   * Read [this](https://bookdown.org/nicohahn/making_maps_with_r5/docs/tmap.html) 
 + [**Descriptive Statistical: ggpairs()**](#CorrelationMap)
-+ [**theme() of ggplot2**](#theme)
++ [**theme() and guide() of ggplot2**](#theme)
+  * position of legend 
+  * change size of points in legend
 + [**Change ggplot facet lavels**](#GgplotFacetLavels)
 + [**Modify the legend**](#ChangeLegendName)
-+ [**Theme option**](#theme)
 + [**Plot Raster with facet**](#RasterFascet)
+
+
 
 ## Useful Functions
 
@@ -156,6 +159,16 @@ tm_shape(unique_tg_corelogic_sf) +
   tm_symbols(col = "Ogallala", shape = 19, size = 0.001)
 ```
 
++ tamp with leaflet
+
+```{r}
+tmap_leaflet(
+  tm_shape(ne_tract) + 
+    tm_polygons(col="pop_density")
+    # tm_fill(col="totalpop")
+)
+```
+
 
 ## Descriptive Statistical: ggpairs() {#CorrelationMap}
 
@@ -178,7 +191,38 @@ pm <- ggpairs(
 
 ## theme() of ggplot2 {#theme}
 
-+ tweak a map to make it much nicer look 
+```{r}
+theme_figure <-
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    rect = element_blank(),
+    text = element_text(family = "Times New Roman")
+  )
+
+theme_dist <-
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    strip.text.x = element_text(size = 12, face = "bold"),
+    strip.text.y = element_text(size = 12, face = "bold"),
+    legend.title = element_text(size = 12, face = "bold"),
+    legend.text = element_text(size = 12, face = "bold"),
+    legend.position = "bottom",
+    text = element_text(family = "Times New Roman")
+  )
+```
+
+### How to increase the size of points in legend of ggplot2?
+
+```{r}
++ guides(colour = guide_legend(override.aes = list(size=10)))
+```
+
+### tweak a map to make it much nicer look
 
 ```{r}
 g_base + theme(axis.text = element_blank())     
@@ -338,32 +382,6 @@ ggplot() +
 ```
 
 
-## Theme option {#theme}
-
-```{r}
-theme_figure <-
-  theme(
-    plot.title = element_text(hjust = 0.5),
-    axis.text.x = element_blank(),
-    axis.text.y = element_blank(),
-    axis.ticks = element_blank(),
-    rect = element_blank(),
-    text = element_text(family = "Times New Roman")
-  )
-
-theme_dist <-
-  theme_bw() +
-  theme(
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
-    strip.text.x = element_text(size = 12, face = "bold"),
-    strip.text.y = element_text(size = 12, face = "bold"),
-    legend.title = element_text(size = 12, face = "bold"),
-    legend.text = element_text(size = 12, face = "bold"),
-    legend.position = "bottom",
-    text = element_text(family = "Times New Roman")
-  )
-```
 
 ## Plot Raster with facet {#RasterFascet}
 

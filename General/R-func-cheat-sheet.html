@@ -1554,6 +1554,10 @@ group</a></li>
 <li><a href="#concantenate">Create new column by concatenating values in
 other columns</a></li>
 <li><a href="#ChangeUnits">Change units</a></li>
+<li><a href="#Vectorization">Vectorization instead of looping with
+lapply</a></li>
+<li><a href="#Separate">Separate strings stored in a single column into
+multiple columns</a></li>
 </ul>
 </div>
 <div id="a-list-of-useful-functions" class="section level2" number="1.2">
@@ -2004,6 +2008,119 @@ dfw_data_for_model &lt;- dfw_data %&gt;%
   select(!ends_with(&quot;M&quot;)) %&gt;% 
   rename_with(.fn = ~str_remove(.x, &quot;E$&quot;)) %&gt;%
   na.omit()</code></pre>
+<p><br></p>
+<p><br></p>
+</div>
+<div id="Vectorization" class="section level2" number="2.12">
+<h2><span class="header-section-number">2.12</span> Vectorization
+instead of looping with lapply</h2>
+<pre class="r"><code>sim_par &lt;- function(i, var_ls, reg_data, test_data, N_levels) {
+  print(paste0(&quot;working on &quot;, i, &quot; th iteration.&quot;))
+  # i = 1; var_ls = c(&quot;alpha&quot;, &quot;beta&quot;, &quot;ymax&quot;)
+  # reg_data = train_dt; test_data = test_dt; N_levels = N_levels
+
+  # /*----------------------------------*/
+  #&#39; ## run ML analyses
+  # /*----------------------------------*/
+
+  #--- all the cases to consider ---#
+  case_data &lt;- 
+    tibble(
+      Method = c(&quot;CF_base&quot;, &quot;BRF&quot;, &quot;RF&quot;)    
+    )
+
+  results_data &lt;- 
+    case_data %&gt;%
+      mutate(
+        opt_N_data = future_lapply(
+          seq_len(nrow(.)),
+          function(x) {
+            ### === apply various methods to get optimal N ===###
+            get_opt_N(
+              reg_data = reg_data,
+              test_data = test_data,
+              var_ls = var_ls,
+              rates_ls = N_levels,
+              Method = .$Method[[x]]
+            )
+          },
+        future.seed = TRUE
+      )
+    )%&gt;%
+    unnest(., cols= &quot;opt_N_data&quot;)%&gt;%
+    data.table()
+
+  return(results_data)
+     
+}</code></pre>
+<pre class="r"><code>test &lt;- 
+  tibble(
+    type = 2008:2010
+    ) %&gt;%
+  mutate(
+    cdl = mclapply(
+      seq_len(nrow(.)),
+      function(x){ 
+        terra::extract(
+              rast(here(paste0(&quot;Shared/Data/H&amp;K/CDL/cdl_&quot;,.$type[[x]],&quot;.tif&quot;))),
+              vect(land_dt_unq_sf)
+            ) %&gt;%
+            data.table() %&gt;%
+            cbind(., land_dt_unq[,.(X, Y)])
+        },
+        mc.cores = 4
+      )
+  )
+
+unnest(test, cdl) %&gt;% data.table()
+
+
+
+get_cdl &lt;- function(year){
+            terra::extract(
+              rast(here(paste0(&quot;Shared/Data/H&amp;K/CDL/cdl_&quot;,year,&quot;.tif&quot;))),
+              vect(land_dt_unq_sf)
+            ) %&gt;%
+            data.table() %&gt;%
+            .[,type := paste0(&quot;cdl&quot;,year)] %&gt;%
+            cbind(., land_dt_unq[,.(X, Y)])
+          }
+
+test &lt;- 
+  tibble(
+    type = 2008:2010
+    ) %&gt;%
+  mutate(
+    cdl = mclapply(
+      seq_len(nrow(.)),
+      function(x){ 
+        terra::extract(
+              rast(here(paste0(&quot;Shared/Data/H&amp;K/CDL/cdl_&quot;,.$type[[x]],&quot;.tif&quot;))),
+              vect(land_dt_unq_sf)
+            ) %&gt;%
+            data.table() %&gt;%
+            cbind(., land_dt_unq[,.(X, Y)])
+        },
+        mc.cores = 4
+      )
+  )
+
+
+test &lt;- 
+  tibble(
+    type = 2008:2012
+    ) %&gt;%
+  rowwise() %&gt;%
+  mutate(
+    cdl = list(get_cdl(year=type))
+  )</code></pre>
+</div>
+<div id="Separate" class="section level2" number="2.13">
+<h2><span class="header-section-number">2.13</span> Separate strings
+stored in a single column into multiple columns</h2>
+<pre class="r"><code>df &lt;- data.frame(x = c(NA, &quot;x.y&quot;, &quot;x.z&quot;, &quot;y.z&quot;))
+df %&gt;% separate(x, c(&quot;A&quot;, &quot;B&quot;))</code></pre>
+<pre class="r"><code>separate(NAME, c(&quot;block&quot;, &quot;BrockGroup&quot;, &quot;CensusTract&quot;, &quot;County&quot;, &quot;State&quot;), sep=&quot;, &quot;) %&gt;%</code></pre>
 <hr />
 </div>
 </div>
