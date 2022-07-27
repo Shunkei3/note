@@ -70,6 +70,7 @@ library(gt)
 ## Topics
 + [**tmap package**](#tmap)
   * Read [this](https://bookdown.org/nicohahn/making_maps_with_r5/docs/tmap.html) 
+  * Read [this](https://geocompr.robinlovelace.net/adv-map.html) 
 + [**Descriptive Statistical: ggpairs()**](#CorrelationMap)
 + [**theme() and guide() of ggplot2**](#theme)
   * position of legend 
@@ -167,6 +168,26 @@ tmap_leaflet(
     tm_polygons(col="pop_density")
     # tm_fill(col="totalpop")
 )
+```
+
+
+```{r}
+tm_shape(Europe) +
+  tm_polygons(col = "outcome",
+              style ="cont", palette = "-RdYlGn")
+
+tm_shape(Europe) +
+  tm_polygons(col = "outcome",
+              style ="cont", palette = "RdYlGn")
+```
+
+
+```{r}
+ne_pop %>%
+  filter(County == "Douglas County") %>%
+  tm_shape(.) + 
+    tm_polygons(col="pop_den_sqmiles", style="order", lwd=0.3) +
+    tm_layout(legend.outside = TRUE) 
 ```
 
 

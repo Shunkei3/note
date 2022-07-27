@@ -1558,6 +1558,7 @@ other columns</a></li>
 lapply</a></li>
 <li><a href="#Separate">Separate strings stored in a single column into
 multiple columns</a></li>
+<li><a href="#SD">use .SD</a></li>
 </ul>
 </div>
 <div id="a-list-of-useful-functions" class="section level2" number="1.2">
@@ -1735,6 +1736,26 @@ summation</h3>
   dcast(nrd_owner_name ~ year, value.var = &quot;index&quot;) %&gt;%
   imputeTS::na_replace(fill = 0) %&gt;%
   .[, num_y := rowSums(.SD), by = nrd_owner_name]</code></pre>
+</div>
+<div id="create-a-column-by-group" class="section level3" number="2.1.4">
+<h3><span class="header-section-number">2.1.4</span> Create a column by
+group</h3>
+<pre class="r"><code>  te_data &lt;- test_data[, c(&quot;unique_subplot_id&quot;, var_ls, &quot;aa_n&quot;, &quot;opt_N&quot;, &quot;yield&quot;, &quot;X&quot;, &quot;Y&quot;), with = FALSE] %&gt;%
+    .[rep(1:nrow(.), each = length(N_levels)), ] %&gt;%
+    .[, rate := rep(N_levels, nrow(.) / length(N_levels))] %&gt;%
+    .[, yield_hat := predict(f_results, newdata = .[, c(&quot;rate&quot;, var_ls), with = FALSE])] %&gt;%
+    #--- Treatment effect calculation ---#
+    .[, yield_base := .SD[rate==min(rate), yield_hat], by = .(unique_subplot_id)] %&gt;%
+    .[, te_base := yield_hat - yield_base] %&gt;%
+    .[, .(unique_subplot_id, rate, te_base)]</code></pre>
+<pre class="r"><code>dt &lt;- data.table(X = c(1, 1, 2), Y = c(1, 1, 2))
+dt[, Z := .N, by = .(X,Y)]
+
+
+cdl_crop &lt;- 
+  cdl_value %&gt;%
+  .[,index := ifelse(MasterCat %in% ag_MasterCat, &quot;ag&quot;, &quot;nonag&quot;)] %&gt;%
+  .[,developed := ifelse(any(MasterCat %in% developed), 1, 0), by = .(id, year)]</code></pre>
 <p><br></p>
 <p><br></p>
 </div>
@@ -2114,6 +2135,8 @@ test &lt;-
   mutate(
     cdl = list(get_cdl(year=type))
   )</code></pre>
+<p><br></p>
+<p><br></p>
 </div>
 <div id="Separate" class="section level2" number="2.13">
 <h2><span class="header-section-number">2.13</span> Separate strings
@@ -2121,6 +2144,8 @@ stored in a single column into multiple columns</h2>
 <pre class="r"><code>df &lt;- data.frame(x = c(NA, &quot;x.y&quot;, &quot;x.z&quot;, &quot;y.z&quot;))
 df %&gt;% separate(x, c(&quot;A&quot;, &quot;B&quot;))</code></pre>
 <pre class="r"><code>separate(NAME, c(&quot;block&quot;, &quot;BrockGroup&quot;, &quot;CensusTract&quot;, &quot;County&quot;, &quot;State&quot;), sep=&quot;, &quot;) %&gt;%</code></pre>
+<p><br></p>
+<p><br></p>
 <hr />
 </div>
 </div>

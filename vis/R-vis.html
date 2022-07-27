@@ -1541,6 +1541,7 @@ div.tocify {
 <li><a href="#tmap"><strong>tmap package</strong></a>
 <ul>
 <li>Read <a href="https://bookdown.org/nicohahn/making_maps_with_r5/docs/tmap.html">this</a></li>
+<li>Read <a href="https://geocompr.robinlovelace.net/adv-map.html">this</a></li>
 </ul></li>
 <li><a href="#CorrelationMap"><strong>Descriptive Statistical:
 ggpairs()</strong></a></li>
@@ -1644,6 +1645,18 @@ tm_shape(unique_tg_corelogic_sf) +
     tm_polygons(col=&quot;pop_density&quot;)
     # tm_fill(col=&quot;totalpop&quot;)
 )</code></pre>
+<pre class="r"><code>tm_shape(Europe) +
+  tm_polygons(col = &quot;outcome&quot;,
+              style =&quot;cont&quot;, palette = &quot;-RdYlGn&quot;)
+
+tm_shape(Europe) +
+  tm_polygons(col = &quot;outcome&quot;,
+              style =&quot;cont&quot;, palette = &quot;RdYlGn&quot;)</code></pre>
+<pre class="r"><code>ne_pop %&gt;%
+  filter(County == &quot;Douglas County&quot;) %&gt;%
+  tm_shape(.) + 
+    tm_polygons(col=&quot;pop_den_sqmiles&quot;, style=&quot;order&quot;, lwd=0.3) +
+    tm_layout(legend.outside = TRUE) </code></pre>
 </div>
 <div id="CorrelationMap" class="section level2" number="2.2">
 <h2><span class="header-section-number">2.2</span> Descriptive

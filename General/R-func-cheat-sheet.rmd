@@ -81,7 +81,7 @@ library(gt)
 + [Change units](#ChangeUnits)
 + [Vectorization instead of looping with lapply](#Vectorization)
 + [Separate strings stored in a single column into multiple columns](#Separate)
-
++ [use .SD](#SD)
 
 ## A list of useful functions
 
@@ -225,6 +225,32 @@ check_comp_LR <-
   dcast(nrd_owner_name ~ year, value.var = "index") %>%
   imputeTS::na_replace(fill = 0) %>%
   .[, num_y := rowSums(.SD), by = nrd_owner_name]
+```
+
+
+### Create a column by group
+
+
+```{r}
+  te_data <- test_data[, c("unique_subplot_id", var_ls, "aa_n", "opt_N", "yield", "X", "Y"), with = FALSE] %>%
+    .[rep(1:nrow(.), each = length(N_levels)), ] %>%
+    .[, rate := rep(N_levels, nrow(.) / length(N_levels))] %>%
+    .[, yield_hat := predict(f_results, newdata = .[, c("rate", var_ls), with = FALSE])] %>%
+    #--- Treatment effect calculation ---#
+    .[, yield_base := .SD[rate==min(rate), yield_hat], by = .(unique_subplot_id)] %>%
+    .[, te_base := yield_hat - yield_base] %>%
+    .[, .(unique_subplot_id, rate, te_base)]
+```
+
+```{r}
+dt <- data.table(X = c(1, 1, 2), Y = c(1, 1, 2))
+dt[, Z := .N, by = .(X,Y)]
+
+
+cdl_crop <- 
+  cdl_value %>%
+  .[,index := ifelse(MasterCat %in% ag_MasterCat, "ag", "nonag")] %>%
+  .[,developed := ifelse(any(MasterCat %in% developed), 1, 0), by = .(id, year)]
 ```
 
 <br>
@@ -672,6 +698,9 @@ test <-
   )
 ```
 
+<br>
+
+<br>
 
 
 ## Separate strings stored in a single column into multiple columns {#Separate}
@@ -685,6 +714,13 @@ df %>% separate(x, c("A", "B"))
 ```{r}
 separate(NAME, c("block", "BrockGroup", "CensusTract", "County", "State"), sep=", ") %>%
 ```
+
+
+<br>
+
+<br>
+
+
 
 
 ---
