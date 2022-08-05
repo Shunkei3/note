@@ -1542,6 +1542,7 @@ div.tocify {
 <ul>
 <li>Read <a href="https://bookdown.org/nicohahn/making_maps_with_r5/docs/tmap.html">this</a></li>
 <li>Read <a href="https://geocompr.robinlovelace.net/adv-map.html">this</a></li>
+<li>Overlay raster layers and vector data</li>
 </ul></li>
 <li><a href="#CorrelationMap"><strong>Descriptive Statistical:
 ggpairs()</strong></a></li>
@@ -1657,6 +1658,24 @@ tm_shape(Europe) +
   tm_shape(.) + 
     tm_polygons(col=&quot;pop_den_sqmiles&quot;, style=&quot;order&quot;, lwd=0.3) +
     tm_layout(legend.outside = TRUE) </code></pre>
+<div id="facets" class="section level3" number="2.1.1">
+<h3><span class="header-section-number">2.1.1</span> facets</h3>
+<pre class="r"><code>tm_shape(hp_counties)+
+  tm_borders()+
+tm_shape(hp_states)+
+  tm_borders(col=&quot;blue&quot;)+
+tm_shape(filter(nonag_cdl_land_sf, Crop %in% target_lu)) +
+  tm_symbols(col=&quot;green&quot;, shape = 19, size=0.1)+
+  tm_facets(by=c(&quot;Crop&quot;), free.scales=FALSE)</code></pre>
+</div>
+<div id="overlay-raster-layers-and-vector-data" class="section level3" number="2.1.2">
+<h3><span class="header-section-number">2.1.2</span> Overlay raster
+layers and vector data</h3>
+<pre class="r"><code>tm_shape(masked_prism_IL) +
+  tm_raster() +
+tm_shape(IL_county) +
+  tm_polygons(alpha = 0)</code></pre>
+</div>
 </div>
 <div id="CorrelationMap" class="section level2" number="2.2">
 <h2><span class="header-section-number">2.2</span> Descriptive

@@ -70,6 +70,7 @@ library(gt)
 ## Topic
 + [Source all the functions in the Functions folder](#SourceFunction)
 + [Data Table Operation](#data_table)
+  * Select columns using the pattern of their names
 + [Manage strings](#ManageStrings)
 + [Basic Statics Summary](#SummaryTable)
 + [Check whether a column has NA values or not](#CheckNA)
@@ -81,7 +82,7 @@ library(gt)
 + [Change units](#ChangeUnits)
 + [Vectorization instead of looping with lapply](#Vectorization)
 + [Separate strings stored in a single column into multiple columns](#Separate)
-+ [use .SD](#SD)
++ [Storing a list within a data frame element](#store)
 
 ## A list of useful functions
 
@@ -98,6 +99,7 @@ library(gt)
 	* remove NA from specific columns
 
 + [**as.formula()**](#formula)
+## + [Storing a list within a data frame element]{#store}
 
 + [**eval()**](#eval)
 	* evaluate an R expression in a specified environment
@@ -216,13 +218,17 @@ report_res_allML[,select(.SD, Method, Model, Min.:Max., cumulative_pi_loss)]
 ```
 
 
-### Calculate row-wise summation
+### Calculate row-wise summation or mean
+
++ rowSums
++ rowMeans
+
 
 ```{r}
 check_comp_LR <- 
   LR_5mi_y_owner[,.(nrd_owner_name, year)] %>%
   .[,index := 1] %>%
-  dcast(nrd_owner_name ~ year, value.var = "index") %>%
+  dcast(nrd_owner_name ~ year, value.var = "index", , fill=0) %>%
   imputeTS::na_replace(fill = 0) %>%
   .[, num_y := rowSums(.SD), by = nrd_owner_name]
 ```
@@ -257,6 +263,43 @@ cdl_crop <-
 
 <br>
 
+
+### Subset by group
+
+```{r}
+cdl_crop[, .SD[any(index=="ag"&total_share<0.5)], by=.(id, year)]
+```
+
+The below is much faster
+
+```{r}
+cdl_crop[, if(any(index=="ag"&total_share<0.5)) .SD, by=.(id, year)]
+```
+
+
+<br>
+
+<br>
+
+### Select columns using the pattern of their names
+
+
+```{r}
+
+mydt[, .SD, .SDcols = names(mydt) %like% "bar|baz"]
+
+names(test)[names(test) %like% "cdl"]
+
+mydt[, grep(c("bar|baz"), names(mydt)), with = FALSE]
+```
+
+
+
+
+<br>
+
+<br>
+
 ## Source all the functions in the Functions folder {#SourceFunction}
 
 ```{r}
@@ -270,10 +313,14 @@ fs::dir_ls(here("Codes", "Functions", "R"), full.names = TRUE) %>%
 
 ## Manage strings {#ManageStrings}
 
-+ `grep()`: search for matches to argument `pattern` within each element of a character vectore
++ `grep()` or `grepl()`: search for matches to argument `pattern` within each element of a character vectore
+  * it returns locations of the target strings in the form of number of TRUE/FALSE 
+
++ `str_subset(string, pattern)` might be a good option
 
 ```{r}
-new_names[#]
+grep(pattern= , x)
+grepl(pattern= , x)
 ```
 
 <br>
@@ -301,6 +348,13 @@ gsub(“20”, “”, as.character(2000:2019))
 new_names <- names(subset_prop_full) %>%
 	 gsub(pattern = " ", replace="_") %>%
 	 tolower()
+
+
+# change column names by pattern
+cdl_value_by_cat <- 
+  cdl_value_by_cat_year %>%
+  dcast(id + developed + total_ag_years ~ cat + year, value.var = "share", fill=0) %>%
+  setnames(names(.), gsub(pattern = "cdl", replace="share", names(.)))
 ```
 
 + `substr()`
@@ -721,7 +775,40 @@ separate(NAME, c("block", "BrockGroup", "CensusTract", "County", "State"), sep="
 <br>
 
 
+## Storing a list within a data frame element {#store}
 
+```{r}
+dt <- 
+  tibble(
+    id = 1:2,
+    vec = st_touches(nc)[1:2]
+    )
+
+
+dt <- data.frame(
+  id = seq_len(nrow(nc))
+  )
+dt$vec <- st_touches(nc)
+
+
+dt <- data.table(
+  # id = seq_len(nrow(nc))
+  id = 1:5,
+  vec =st_touches(nc)[1:5]
+  )
+```
+
+
+## Select first element of nested list
+
+```{r}
+x = list(list(1,2), list(3,4), list(5,6))
+
+lapply(x, `[[`, 1)
+
+
+map(x, 1)
+```
 
 ---
 
@@ -747,7 +834,7 @@ melt(id.vars = "ID", variable.name = "day")
 + long- to wide-format data 
 
 ```{r}
-dcast(DT.m1, family_id + age_mother ~ child, value.var = "dob")
+dcast(DT.m1, family_id + age_mother ~ child, value.var = "dob", fill=0)
 ```
 
 + **Note**:

@@ -71,6 +71,7 @@ library(gt)
 + [**tmap package**](#tmap)
   * Read [this](https://bookdown.org/nicohahn/making_maps_with_r5/docs/tmap.html) 
   * Read [this](https://geocompr.robinlovelace.net/adv-map.html) 
+  * Overlay raster layers and vector data
 + [**Descriptive Statistical: ggpairs()**](#CorrelationMap)
 + [**theme() and guide() of ggplot2**](#theme)
   * position of legend 
@@ -189,6 +190,33 @@ ne_pop %>%
     tm_polygons(col="pop_den_sqmiles", style="order", lwd=0.3) +
     tm_layout(legend.outside = TRUE) 
 ```
+
+### facets
+
+```{r}
+tm_shape(hp_counties)+
+  tm_borders()+
+tm_shape(hp_states)+
+  tm_borders(col="blue")+
+tm_shape(filter(nonag_cdl_land_sf, Crop %in% target_lu)) +
+  tm_symbols(col="green", shape = 19, size=0.1)+
+  tm_facets(by=c("Crop"), free.scales=FALSE)
+```
+
+
+### Overlay raster layers and vector data
+
+```{r}
+tm_shape(masked_prism_IL) +
+  tm_raster() +
+tm_shape(IL_county) +
+  tm_polygons(alpha = 0)
+```
+
+
+
+
+
 
 
 ## Descriptive Statistical: ggpairs() {#CorrelationMap}

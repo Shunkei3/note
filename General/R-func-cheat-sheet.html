@@ -1540,7 +1540,10 @@ div.tocify {
 <ul>
 <li><a href="#SourceFunction">Source all the functions in the Functions
 folder</a></li>
-<li><a href="#data_table">Data Table Operation</a></li>
+<li><a href="#data_table">Data Table Operation</a>
+<ul>
+<li>Select columns using the pattern of their names</li>
+</ul></li>
 <li><a href="#ManageStrings">Manage strings</a></li>
 <li><a href="#SummaryTable">Basic Statics Summary</a></li>
 <li><a href="#CheckNA">Check whether a column has NA values or
@@ -1558,7 +1561,7 @@ other columns</a></li>
 lapply</a></li>
 <li><a href="#Separate">Separate strings stored in a single column into
 multiple columns</a></li>
-<li><a href="#SD">use .SD</a></li>
+<li><a href="#store">Storing a list within a data frame element</a></li>
 </ul>
 </div>
 <div id="a-list-of-useful-functions" class="section level2" number="1.2">
@@ -1582,7 +1585,7 @@ files: downloader package</p></li>
 <ul>
 <li>remove NA from specific columns</li>
 </ul></li>
-<li><p><a href="#formula"><strong>as.formula()</strong></a></p></li>
+<li><p><a href="#formula"><strong>as.formula()</strong></a> ## + <span id="store">Storing a list within a data frame element</span></p></li>
 <li><p><a href="#eval"><strong>eval()</strong></a></p>
 <ul>
 <li>evaluate an R expression in a specified environment</li>
@@ -1727,13 +1730,17 @@ using a sequence of column names</h3>
 </ul>
 <pre class="r"><code>report_res_allML[,select(.SD, Method, Model, Min.:Max., cumulative_pi_loss)]</code></pre>
 </div>
-<div id="calculate-row-wise-summation" class="section level3" number="2.1.3">
+<div id="calculate-row-wise-summation-or-mean" class="section level3" number="2.1.3">
 <h3><span class="header-section-number">2.1.3</span> Calculate row-wise
-summation</h3>
+summation or mean</h3>
+<ul>
+<li>rowSums</li>
+<li>rowMeans</li>
+</ul>
 <pre class="r"><code>check_comp_LR &lt;- 
   LR_5mi_y_owner[,.(nrd_owner_name, year)] %&gt;%
   .[,index := 1] %&gt;%
-  dcast(nrd_owner_name ~ year, value.var = &quot;index&quot;) %&gt;%
+  dcast(nrd_owner_name ~ year, value.var = &quot;index&quot;, , fill=0) %&gt;%
   imputeTS::na_replace(fill = 0) %&gt;%
   .[, num_y := rowSums(.SD), by = nrd_owner_name]</code></pre>
 </div>
@@ -1759,6 +1766,26 @@ cdl_crop &lt;-
 <p><br></p>
 <p><br></p>
 </div>
+<div id="subset-by-group" class="section level3" number="2.1.5">
+<h3><span class="header-section-number">2.1.5</span> Subset by
+group</h3>
+<pre class="r"><code>cdl_crop[, .SD[any(index==&quot;ag&quot;&amp;total_share&lt;0.5)], by=.(id, year)]</code></pre>
+<p>The below is much faster</p>
+<pre class="r"><code>cdl_crop[, if(any(index==&quot;ag&quot;&amp;total_share&lt;0.5)) .SD, by=.(id, year)]</code></pre>
+<p><br></p>
+<p><br></p>
+</div>
+<div id="select-columns-using-the-pattern-of-their-names" class="section level3" number="2.1.6">
+<h3><span class="header-section-number">2.1.6</span> Select columns
+using the pattern of their names</h3>
+<pre class="r"><code>mydt[, .SD, .SDcols = names(mydt) %like% &quot;bar|baz&quot;]
+
+names(test)[names(test) %like% &quot;cdl&quot;]
+
+mydt[, grep(c(&quot;bar|baz&quot;), names(mydt)), with = FALSE]</code></pre>
+<p><br></p>
+<p><br></p>
+</div>
 </div>
 <div id="SourceFunction" class="section level2" number="2.2">
 <h2><span class="header-section-number">2.2</span> Source all the
@@ -1771,10 +1798,16 @@ functions in the Functions folder</h2>
 <div id="ManageStrings" class="section level2" number="2.3">
 <h2><span class="header-section-number">2.3</span> Manage strings</h2>
 <ul>
-<li><code>grep()</code>: search for matches to argument
-<code>pattern</code> within each element of a character vectore</li>
+<li><code>grep()</code> or <code>grepl()</code>: search for matches to
+argument <code>pattern</code> within each element of a character vectore
+<ul>
+<li>it returns locations of the target strings in the form of number of
+TRUE/FALSE</li>
+</ul></li>
+<li><code>str_subset(string, pattern)</code> might be a good option</li>
 </ul>
-<pre class="r"><code>new_names[#]</code></pre>
+<pre class="r"><code>grep(pattern= , x)
+grepl(pattern= , x)</code></pre>
 <p><br></p>
 <ul>
 <li><code>gsub()</code>:
@@ -1800,7 +1833,14 @@ gsub(“20”, “”, as.character(2000:2019))
 # replace “ “(space) with “_”(undervar)
 new_names &lt;- names(subset_prop_full) %&gt;%
      gsub(pattern = &quot; &quot;, replace=&quot;_&quot;) %&gt;%
-     tolower()</code></pre>
+     tolower()
+
+
+# change column names by pattern
+cdl_value_by_cat &lt;- 
+  cdl_value_by_cat_year %&gt;%
+  dcast(id + developed + total_ag_years ~ cat + year, value.var = &quot;share&quot;, fill=0) %&gt;%
+  setnames(names(.), gsub(pattern = &quot;cdl&quot;, replace=&quot;share&quot;, names(.)))</code></pre>
 <ul>
 <li><code>substr()</code></li>
 </ul>
@@ -2146,6 +2186,38 @@ df %&gt;% separate(x, c(&quot;A&quot;, &quot;B&quot;))</code></pre>
 <pre class="r"><code>separate(NAME, c(&quot;block&quot;, &quot;BrockGroup&quot;, &quot;CensusTract&quot;, &quot;County&quot;, &quot;State&quot;), sep=&quot;, &quot;) %&gt;%</code></pre>
 <p><br></p>
 <p><br></p>
+</div>
+<div id="store" class="section level2" number="2.14">
+<h2><span class="header-section-number">2.14</span> Storing a list
+within a data frame element</h2>
+<pre class="r"><code>dt &lt;- 
+  tibble(
+    id = 1:2,
+    vec = st_touches(nc)[1:2]
+    )
+
+
+dt &lt;- data.frame(
+  id = seq_len(nrow(nc))
+  )
+dt$vec &lt;- st_touches(nc)
+
+
+dt &lt;- data.table(
+  # id = seq_len(nrow(nc))
+  id = 1:5,
+  vec =st_touches(nc)[1:5]
+  )</code></pre>
+</div>
+<div id="select-first-element-of-nested-list" class="section level2" number="2.15">
+<h2><span class="header-section-number">2.15</span> Select first element
+of nested list</h2>
+<pre class="r"><code>x = list(list(1,2), list(3,4), list(5,6))
+
+lapply(x, `[[`, 1)
+
+
+map(x, 1)</code></pre>
 <hr />
 </div>
 </div>
@@ -2178,7 +2250,7 @@ instead.</li>
 <ul>
 <li>long- to wide-format data</li>
 </ul>
-<pre class="r"><code>dcast(DT.m1, family_id + age_mother ~ child, value.var = &quot;dob&quot;)</code></pre>
+<pre class="r"><code>dcast(DT.m1, family_id + age_mother ~ child, value.var = &quot;dob&quot;, fill=0)</code></pre>
 <ul>
 <li><strong>Note</strong>:
 <ul>
