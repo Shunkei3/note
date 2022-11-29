@@ -1658,6 +1658,18 @@ tm_shape(Europe) +
   tm_shape(.) + 
     tm_polygons(col=&quot;pop_den_sqmiles&quot;, style=&quot;order&quot;, lwd=0.3) +
     tm_layout(legend.outside = TRUE) </code></pre>
+<pre class="r"><code># === title and so on === #
+tm_shape(mn_adm2)+
+  tm_polygons(
+    col = &quot;Total Population, 2021&quot;,
+    title = &quot;Population&quot;,
+    n = 8,
+    style = &quot;jenks&quot;
+  )+
+  tm_layout(
+      main.title = &quot;2021 County−Level Population Estimates&quot;,
+    legend.outside = TRUE
+    )</code></pre>
 <div id="facets" class="section level3" number="2.1.1">
 <h3><span class="header-section-number">2.1.1</span> facets</h3>
 <pre class="r"><code>tm_shape(hp_counties)+

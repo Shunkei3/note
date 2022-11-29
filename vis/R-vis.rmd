@@ -191,6 +191,21 @@ ne_pop %>%
     tm_layout(legend.outside = TRUE) 
 ```
 
+```{r}
+# === title and so on === #
+tm_shape(mn_adm2)+
+  tm_polygons(
+    col = "Total Population, 2021",
+    title = "Population",
+    n = 8,
+    style = "jenks"
+  )+
+  tm_layout(
+      main.title = "2021 County−Level Population Estimates",
+    legend.outside = TRUE
+    )
+```
+
 ### facets
 
 ```{r}

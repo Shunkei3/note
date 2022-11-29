@@ -1562,13 +1562,28 @@ lapply</a></li>
 <li><a href="#Separate">Separate strings stored in a single column into
 multiple columns</a></li>
 <li><a href="#store">Storing a list within a data frame element</a></li>
+<li><a href="#ggally">Make a matrix of plots with a given data
+set</a></li>
 </ul>
 </div>
-<div id="a-list-of-useful-functions" class="section level2" number="1.2">
-<h2><span class="header-section-number">1.2</span> A list of useful
+<div id="useful-packages" class="section level2" number="1.2">
+<h2><span class="header-section-number">1.2</span> Useful Packages:</h2>
+<ul>
+<li>tigris: to download shapefile
+<ul>
+<li>they also contains areas(m^2) information</li>
+<li>download fips code data: <code>data(fips_codes)</code></li>
+</ul></li>
+<li>maps: ex) data(state.fips)</li>
+<li>tidycensus: download census data</li>
+<li></li>
+</ul>
+</div>
+<div id="a-list-of-useful-functions" class="section level2" number="1.3">
+<h2><span class="header-section-number">1.3</span> A list of useful
 functions</h2>
-<div id="high" class="section level3" number="1.2.1">
-<h3><span class="header-section-number">1.2.1</span> High</h3>
+<div id="high" class="section level3" number="1.3.1">
+<h3><span class="header-section-number">1.3.1</span> High</h3>
 <ul>
 <li><p><a href="#melt"><strong>melt()</strong></a></p>
 <ul>
@@ -1615,8 +1630,8 @@ you read a large file (ex. .txt)</p></li>
 </ul>
 <p><br></p>
 </div>
-<div id="low" class="section level3" number="1.2.2">
-<h3><span class="header-section-number">1.2.2</span> Low</h3>
+<div id="low" class="section level3" number="1.3.2">
+<h3><span class="header-section-number">1.3.2</span> Low</h3>
 <ul>
 <li><p><span style="color:blue">setcolorder()</span></p>
 <ul>
@@ -2218,6 +2233,16 @@ lapply(x, `[[`, 1)
 
 
 map(x, 1)</code></pre>
+</div>
+<div id="ggally" class="section level2" number="2.16">
+<h2><span class="header-section-number">2.16</span> Make a matrix of
+plots with a given data set</h2>
+<pre class="r"><code>GGally::ggpairs(
+  data = analysis_data[,.(nnf, population)],
+  # lower = list(continuous = wrap(&quot;points&quot;, size=0.5)),
+  diag= list(continuous=&quot;barDiag&quot;),
+  title = &quot;Scatterplot matrix of the Weather Data&quot;
+  )</code></pre>
 <hr />
 </div>
 </div>
@@ -2232,7 +2257,14 @@ functions</h1>
 <pre class="r"><code>DT.m1 = melt(DT, id.vars = c(&quot;family_id&quot;, &quot;age_mother&quot;),
                 measure.vars = c(&quot;dob_child1&quot;, &quot;dob_child2&quot;, &quot;dob_child3&quot;))   
 
-melt(id.vars = &quot;ID&quot;, variable.name = &quot;day&quot;)</code></pre>
+melt(id.vars = &quot;ID&quot;, variable.name = &quot;day&quot;)
+
+  melt(
+    copy_all.stats, 
+    id.vars = c(&quot;var_long&quot;, &quot;var_short&quot;)
+    variable.name = ,
+    value.name
+    )   </code></pre>
 <ul>
 <li><strong>Note</strong>:
 <ul>

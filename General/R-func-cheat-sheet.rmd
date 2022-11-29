@@ -83,6 +83,16 @@ library(gt)
 + [Vectorization instead of looping with lapply](#Vectorization)
 + [Separate strings stored in a single column into multiple columns](#Separate)
 + [Storing a list within a data frame element](#store)
++ [Make a matrix of plots with a given data set](#ggally)
+
+
+## Useful Packages:
++ tigris: to download shapefile
+  * they also contains areas(m^2) information
+  * download fips code data: `data(fips_codes)`
++ maps: ex) data(state.fips)
++ tidycensus: download census data
++ 
 
 ## A list of useful functions
 
@@ -810,6 +820,19 @@ lapply(x, `[[`, 1)
 map(x, 1)
 ```
 
+
+## Make a matrix of plots with a given data set {#ggally}
+
+```{r}
+GGally::ggpairs(
+  data = analysis_data[,.(nnf, population)],
+  # lower = list(continuous = wrap("points", size=0.5)),
+  diag= list(continuous="barDiag"),
+  title = "Scatterplot matrix of the Weather Data"
+  )
+```
+
+
 ---
 
 # A list of useful functions
@@ -822,6 +845,13 @@ DT.m1 = melt(DT, id.vars = c("family_id", "age_mother"),
                 measure.vars = c("dob_child1", "dob_child2", "dob_child3"))   
 
 melt(id.vars = "ID", variable.name = "day")
+
+  melt(
+    copy_all.stats, 
+    id.vars = c("var_long", "var_short")
+    variable.name = ,
+    value.name
+    )   
 ```
 
 + **Note**: 

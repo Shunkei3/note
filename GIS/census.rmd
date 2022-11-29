@@ -1,0 +1,242 @@
+---
+title: "R Function Cheat Sheet"
+author: "Shunkei Kakimoto"
+output:
+  html_document:
+    number_sections: yes
+    theme: flatly
+    toc_float: yes
+    toc: yes
+    toc_depth: 2
+geometry: margin=1in
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(here)
+
+here::i_am("Dropbox/R-project/R-functions/GitControlled/General/R-func-cheat-sheet.rmd")
+
+# opts_knit$set(root.dir = "")
+# opts_knit$set(root.dir = here())
+
+knitr::opts_chunk$set(
+  echo = TRUE,
+  cache = FALSE,
+  eval = FALSE, 
+  comment = NA,
+  message = FALSE,
+  warning = FALSE,
+  tidy = FALSE,
+  cache.lazy = FALSE,
+  #--- figure ---#
+  dpi = 400,
+  fig.width = 7.5,
+  fig.height = 5,
+  out.width = "750px",
+  out.height = "500px"
+)
+
+# /*===== Basic Packages  =====*/
+# /*---- Data Wrangling ----*/
+library(data.table)
+library(tidyverse)
+library(DescTools)
+library(maps)
+
+# /*---- Visualization ----*/
+library(RColorBrewer)
+library(patchwork)
+library(ggplot2)
+library(ggthemes)
+library(ggpubr)
+library(viridis)
+library(grid)
+library(gridExtra)
+library(GGally)
+
+# /*---- Model Summary ----*/
+library(stats)
+library(modelsummary)
+library(flextable)
+library(officer)
+library(officedown)
+library(gt)
+
+```
+
++ `tidycensus`: 
+  * Details [here](https://walker-data.com/census-r/an-introduction-to-tidycensus.html)
+  * Functions [here](https://walker-data.com/tidycensus/index.html)
+
++ NOTE: `tidycensus` does not grant access to all of the datasets available from the Census API
+
+# Main
+
+## **Decennial US Census**
++ Every 10 years: 2000, 2010, 2020
+
+```{r}
+# Ex)
+get_decennial(
+  geography = "state", 
+  variables = "P001001",
+  year = 2010,
+  sumfile = "sf1" #(by default)
+)
+```
+
++ The Census summary file
+  * `sumfile = "sf1"`: the decennial Census Summary File 1, and includes core demographic characteristics for Census geographies
+  * `sumfile = "sf2"`: the decennial Census Summary File 2, contains information on a range of population and housing unit characteristics
+  * "sf3" and "sf4": Detailed demographic information in the 2000 decennial Census such as income and occupation can be found
+  * `sumfile = "pl"`: for 2020 Decennial Census data. 
+
++ 2000 Census data: "sf1", "sf2", "sf3" and "sf4"
++ 2010 Census data: "sf1" and "sf2"
++ 2020 Census data: use "pl" (the only dataset supported for now)
+
++ The smallest unit at which available from the decennial US Census is the "block"
+  * * the boundary is available at `tigris::blocks(state, county = NULL, year = NULL, ...)`
+
+
+## **American Community Survey (ACS)**:
++ the premier source of detailed demographic information about the US population.
++ Two official datasets:
+  * 1-year ACS: covers areas of population 65,000 and greater (from 2005)
+  * 5-year ACS: a moving average of data over a 5-year period that covers geographies down to the Census block group (from 2005-2009)
+
++ *NOTE*: ACS data are distinct from decennial Census data in that **data represent estimates rather than precise counts**, and in turn are characterized by margins of error around those estimates
+
+
+```{r}
+# Ex)
+# for 5-year ACS fof 2016-2020
+get_acs(
+  geography = "state", 
+  variables = "B05006_150",
+  survey = "acs5", # by default
+  year = 2020
+  
+)
+
+# for 1-year ACS for 2019
+ get_acs(
+  geography = "state", 
+  variables = "B05006_150", 
+  survey = "acs1", # change to "acs1" to specify year
+  year = 2019
+)
+
+```
+
+
+<br>
+
++ The smallest unit in the ACS is the "block" group (> Census block)
+  * the boundary is available at `tigris::block_groups()`
+
+
+
+
+
+## How to search Census variable ID?
+
++ `load_variables(year, dataset)`: obtains a dataset of variables from the Census Bureau website and formats it for fast searching, ideally in RStudio.
+
+
+
+# Other Census Bureau datasets in tidycensus
+
+## get_estimates()
++ Population Estimates Program (PEP) provides **yearly** estimates of the US population and its components between decennial Censuses.
+  * PEP is derived from the most recent decennial Census based on birth, death, and migration rates. 
+  * One advantage of using the PEP to retrieve data is that allows you to access the indicators used to produce the **intercensal population estimates**.
+    - `product`
+      + "population"
+      + "comments"
+      + "housing"
+      + "characteristics"
+
+```{r}
+queens_components <- get_estimates(
+  geography = "county",
+  product = "components",
+  state = "NY",
+  county = "Queens",
+  year = 2019
+)
+```
+
+
+
+
+
+
+```{r}
+# /*===== Functions =====*/
+dissove_bd_by_county <- function(data, state){
+  # data=hp_urban_blocks ; state="Nebraska"
+
+  temp_data <- filter(data, State==state)
+
+  return_res <- 
+    tibble(
+      section = unique(temp_data$County)
+    ) %>%
+    rowwise() %>%
+    mutate(
+      section_dt = list(
+        filter(temp_data, County == section)
+      )
+    ) %>%
+    ungroup() %>%
+    mutate(
+      agg_section_dt = future_lapply(
+        seq_len(nrow(.)),
+        function(x){
+          .$section_dt[[x]] %>%
+            group_by(County, State) %>%
+            summarise()
+        }
+      )
+    ) %>%
+    unnest(., cols= "agg_section_dt") %>%
+    mutate(
+      section = NULL,
+      section_dt = NULL,
+    ) %>%
+    st_as_sf()
+
+    return(return_res)
+}
+
+
+# /*===== Apply to each state  =====*/
+tic()
+res_urban_dissolve <- 
+  lapply(
+    unique(hp_urban_blocks$State),
+    function(x) 
+      dissove_bd_by_county(
+        data = hp_urban_blocks,
+        state = x)
+      ) %>%
+  bind_rows()
+toc()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
