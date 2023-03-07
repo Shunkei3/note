@@ -79,7 +79,7 @@ library(gt)
 + [**Change ggplot facet lavels**](#GgplotFacetLavels)
 + [**Modify the legend**](#ChangeLegendName)
 + [**Plot Raster with facet**](#RasterFascet)
-
++ [**Color command**](#color)
 
 
 ## Useful Functions
@@ -488,6 +488,66 @@ vis_pr <-
     labs(fill = "In-season precipitation (inches)") 
 ```
 
+## Color command {#color}
+```{r}
+scale_fill_brewer(palette = "Paired")
+```
+
+```{r}
+ggplot(bd_nrd_for_map) +
+  # === Basic info === #
+  geom_sf(fill=NA) +
+  # === years === #
+  geom_sf(aes(fill=Year), alpha=0.8)+
+  scale_fill_manual(values=my_cols)+
+  # === NRD name === #
+  geom_text(aes(x = X, y = Y, label = NRD_Name), size = 3)+
+  # === format === #
+  theme_void() +
+  labs(
+    title = "The implementation of groundwater allocation policies by year",
+    fill = "First Implementation Year"
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5)
+  )
+
+# === Set fill colors === #
+alloc_colors <- c(
+  # create colors for year variables (6 unique years)
+  brewer_pal("div", palette = "Greens", direction = -1)(6),
+  # colors for non-year variables
+  c("darkgray", "orange")
+  )
+
+
+ggplot(bd_nrd_for_map) +
+  # === Basic info === #
+  geom_sf(fill=NA) +
+  # === years === #
+  geom_sf(aes(fill=alloc_year), alpha=0.8)+
+  scale_fill_manual(values=alloc_colors)+
+  # === NRD name === #
+  geom_text(aes(x = X, y = Y, label = NRD_Name), size = 3)+
+  # === format === #
+  theme_void() +
+  labs(
+    title = "The implementation of groundwater allocation policies by year",
+    fill = "First Implementation Year"
+  ) +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+  
+tm_shape(bd_nrd_for_map) +
+  tm_polygons(col="alloc_year", title = "First Implementation Year") +
+  tm_text("NRD_Name", size=0.8) +
+  tm_layout(
+      main.title = "The implementation of groundwater allocation policies by year", 
+      main.title.position = "center",
+    frame = FALSE
+    )
+```
 
 ---
 

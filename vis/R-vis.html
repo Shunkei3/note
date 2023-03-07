@@ -1557,6 +1557,7 @@ lavels</strong></a></li>
 legend</strong></a></li>
 <li><a href="#RasterFascet"><strong>Plot Raster with
 facet</strong></a></li>
+<li><a href="#color"><strong>Color command</strong></a></li>
 </ul>
 </div>
 <div id="useful-functions" class="section level2" number="1.2">
@@ -1925,8 +1926,65 @@ vis_pr &lt;-
       legend.position = &quot;bottom&quot;
     ) +
     labs(fill = &quot;In-season precipitation (inches)&quot;) </code></pre>
-<hr />
 </div>
+</div>
+<div id="color" class="section level2" number="2.6">
+<h2><span class="header-section-number">2.6</span> Color command</h2>
+<pre class="r"><code>scale_fill_brewer(palette = &quot;Paired&quot;)</code></pre>
+<pre class="r"><code>ggplot(bd_nrd_for_map) +
+  # === Basic info === #
+  geom_sf(fill=NA) +
+  # === years === #
+  geom_sf(aes(fill=Year), alpha=0.8)+
+  scale_fill_manual(values=my_cols)+
+  # === NRD name === #
+  geom_text(aes(x = X, y = Y, label = NRD_Name), size = 3)+
+  # === format === #
+  theme_void() +
+  labs(
+    title = &quot;The implementation of groundwater allocation policies by year&quot;,
+    fill = &quot;First Implementation Year&quot;
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5)
+  )
+
+# === Set fill colors === #
+alloc_colors &lt;- c(
+  # create colors for year variables (6 unique years)
+  brewer_pal(&quot;div&quot;, palette = &quot;Greens&quot;, direction = -1)(6),
+  # colors for non-year variables
+  c(&quot;darkgray&quot;, &quot;orange&quot;)
+  )
+
+
+ggplot(bd_nrd_for_map) +
+  # === Basic info === #
+  geom_sf(fill=NA) +
+  # === years === #
+  geom_sf(aes(fill=alloc_year), alpha=0.8)+
+  scale_fill_manual(values=alloc_colors)+
+  # === NRD name === #
+  geom_text(aes(x = X, y = Y, label = NRD_Name), size = 3)+
+  # === format === #
+  theme_void() +
+  labs(
+    title = &quot;The implementation of groundwater allocation policies by year&quot;,
+    fill = &quot;First Implementation Year&quot;
+  ) +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+  
+tm_shape(bd_nrd_for_map) +
+  tm_polygons(col=&quot;alloc_year&quot;, title = &quot;First Implementation Year&quot;) +
+  tm_text(&quot;NRD_Name&quot;, size=0.8) +
+  tm_layout(
+      main.title = &quot;The implementation of groundwater allocation policies by year&quot;, 
+      main.title.position = &quot;center&quot;,
+    frame = FALSE
+    )</code></pre>
+<hr />
 </div>
 </div>
 <div id="useful-functions-1" class="section level1" number="3">
