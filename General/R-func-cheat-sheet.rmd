@@ -71,6 +71,7 @@ library(gt)
 + [Source all the functions in the Functions folder](#SourceFunction)
 + [Data Table Operation](#data_table)
   * Select columns using the pattern of their names
++ [Data Table merge](#data_table_merge)
 + [Manage strings](#ManageStrings)
 + [Basic Statics Summary](#SummaryTable)
 + [Check whether a column has NA values or not](#CheckNA)
@@ -218,6 +219,19 @@ reg_data <-
     by = .(id, t)
   ]
 ```
+
+### Data Table merge {#data_table_merge}
++ see [this](https://medium.com/analytics-vidhya/r-data-table-joins-48f00b46ce29)
+
+```{r}
+# Right outer join
+big[small, on = .(id)]
+
+# Inner join
+small[big, on = .(id), nomatch = NULL]
+
+```
+
 
 ### Select columns using a sequence of column  names
 

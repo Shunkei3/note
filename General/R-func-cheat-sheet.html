@@ -1544,6 +1544,7 @@ folder</a></li>
 <ul>
 <li>Select columns using the pattern of their names</li>
 </ul></li>
+<li><a href="#data_table_merge">Data Table merge</a></li>
 <li><a href="#ManageStrings">Manage strings</a></li>
 <li><a href="#SummaryTable">Basic Statics Summary</a></li>
 <li><a href="#CheckNA">Check whether a column has NA values or
@@ -1737,16 +1738,28 @@ reg_data &lt;-
     by = .(id, t)
   ]</code></pre>
 </div>
-<div id="select-columns-using-a-sequence-of-column-names" class="section level3" number="2.1.2">
-<h3><span class="header-section-number">2.1.2</span> Select columns
+<div id="data_table_merge" class="section level3" number="2.1.2">
+<h3><span class="header-section-number">2.1.2</span> Data Table
+merge</h3>
+<ul>
+<li>see <a href="https://medium.com/analytics-vidhya/r-data-table-joins-48f00b46ce29">this</a></li>
+</ul>
+<pre class="r"><code># Right outer join
+big[small, on = .(id)]
+
+# Inner join
+small[big, on = .(id), nomatch = NULL]</code></pre>
+</div>
+<div id="select-columns-using-a-sequence-of-column-names" class="section level3" number="2.1.3">
+<h3><span class="header-section-number">2.1.3</span> Select columns
 using a sequence of column names</h3>
 <ul>
 <li>If you want to select columns with a sequence of column names</li>
 </ul>
 <pre class="r"><code>report_res_allML[,select(.SD, Method, Model, Min.:Max., cumulative_pi_loss)]</code></pre>
 </div>
-<div id="calculate-row-wise-summation-or-mean" class="section level3" number="2.1.3">
-<h3><span class="header-section-number">2.1.3</span> Calculate row-wise
+<div id="calculate-row-wise-summation-or-mean" class="section level3" number="2.1.4">
+<h3><span class="header-section-number">2.1.4</span> Calculate row-wise
 summation or mean</h3>
 <ul>
 <li>rowSums</li>
@@ -1759,8 +1772,8 @@ summation or mean</h3>
   imputeTS::na_replace(fill = 0) %&gt;%
   .[, num_y := rowSums(.SD), by = nrd_owner_name]</code></pre>
 </div>
-<div id="create-a-column-by-group" class="section level3" number="2.1.4">
-<h3><span class="header-section-number">2.1.4</span> Create a column by
+<div id="create-a-column-by-group" class="section level3" number="2.1.5">
+<h3><span class="header-section-number">2.1.5</span> Create a column by
 group</h3>
 <pre class="r"><code>  te_data &lt;- test_data[, c(&quot;unique_subplot_id&quot;, var_ls, &quot;aa_n&quot;, &quot;opt_N&quot;, &quot;yield&quot;, &quot;X&quot;, &quot;Y&quot;), with = FALSE] %&gt;%
     .[rep(1:nrow(.), each = length(N_levels)), ] %&gt;%
@@ -1781,8 +1794,8 @@ cdl_crop &lt;-
 <p><br></p>
 <p><br></p>
 </div>
-<div id="subset-by-group" class="section level3" number="2.1.5">
-<h3><span class="header-section-number">2.1.5</span> Subset by
+<div id="subset-by-group" class="section level3" number="2.1.6">
+<h3><span class="header-section-number">2.1.6</span> Subset by
 group</h3>
 <pre class="r"><code>cdl_crop[, .SD[any(index==&quot;ag&quot;&amp;total_share&lt;0.5)], by=.(id, year)]</code></pre>
 <p>The below is much faster</p>
@@ -1790,8 +1803,8 @@ group</h3>
 <p><br></p>
 <p><br></p>
 </div>
-<div id="select-columns-using-the-pattern-of-their-names" class="section level3" number="2.1.6">
-<h3><span class="header-section-number">2.1.6</span> Select columns
+<div id="select-columns-using-the-pattern-of-their-names" class="section level3" number="2.1.7">
+<h3><span class="header-section-number">2.1.7</span> Select columns
 using the pattern of their names</h3>
 <pre class="r"><code>mydt[, .SD, .SDcols = names(mydt) %like% &quot;bar|baz&quot;]
 
