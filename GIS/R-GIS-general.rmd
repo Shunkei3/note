@@ -73,6 +73,7 @@ library(gt)
 + [Download state, county border](#DonloadStateBoundary)
 + [Make boundary sf object from multi-polygons](#MakeBoundary)
 + [Create X, Y columns](#CreateXYColumns)
++ [States or counties located in the US mainland](#mainland) 
 + [Make sf object from data.table](#Makesf)
 + [Spatial Operations on vector data](#SpatialOperationsVector)
   * See "Geocomputation with R":[here](https://geocompr.robinlovelace.net/spatial-operations.html)
@@ -221,6 +222,28 @@ xy <- dplyr::select(field_padding, unique_cell_id) %>%
 <br>
 
 <br>
+
+## States or counties located in the US mainland {#mainland}
+
+```{r}
+# us mainland 
+state_bd_sf <- 
+  tigris::states(, cb = FALSE) %>%
+  filter(!(STUSPS %in% c("HI", "AK", "AS", "GU", "MP", "PR", "VI", "UM")))
+
+tm_shape(state_bd_sf)+tm_borders()
+  
+cty_bd_sf <- 
+  tigris::counties(, cb = FALSE) %>%
+  .[state_bd_sf,] %>%
+  setnames(names(.), tolower(names(.))) %>%
+    mutate(fips = paste0(statefp, countyfp))
+```
+
+<br>
+
+<br>
+
 
 ## Make sf object from data.table {#Makesf}
 
