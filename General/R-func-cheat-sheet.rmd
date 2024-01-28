@@ -85,7 +85,7 @@ library(gt)
 + [Separate strings stored in a single column into multiple columns](#Separate)
 + [Storing a list within a data frame element](#store)
 + [Make a matrix of plots with a given data set](#ggally)
-
++ [parallel with loop function](#loop_parallel)
 
 ## Useful Packages:
 + tigris: to download shapefile
@@ -844,6 +844,36 @@ GGally::ggpairs(
   diag= list(continuous="barDiag"),
   title = "Scatterplot matrix of the Weather Data"
   )
+```
+
+
+
+## Parallel with loop function {#loop_parallel}
+
+```{r}
+library(foreach)
+library(future)
+library(doFuture)
+plan(multisession) # Tells future package to use multiple cores on your computer.
+
+# Without doRNG package, random numbers in parallel sessions might be equal.
+library(doRNG) # random number generator for parallel processing
+registerDoFuture()
+registerDoRNG(seed=580724) # This is where you set the random seed when 
+                           # using parallel processing.
+
+asymp.ci <- 
+  foreach(b = 1:B, .combine=rbind) %dopar% {
+    # for example, 
+    # b=1
+    # --- Generating data --- #
+    a7 <- new.data(n, beta)
+    # --- run a regression (with the correct specification)--- #
+    reg <- lm(Y~X1+X2+D+I(D*X1), data=a7)
+    # --- compute confidence interval --- #
+    this.ci <- coefci(reg, level=0.95, vcov.=vcovHC, type=type)[which.coef, ]
+    this.ci  # Last thing goes into next row of asymp.ci.
+}
 ```
 
 
