@@ -1529,8 +1529,10 @@ div.tocify {
 <ul>
 <li><a href="#CRS">Finding appropriate CRS</a></li>
 </ul></li>
-<li><a href="#DonloadStateBoundary">Download state, county
-border</a></li>
+<li><a href="#DonloadStateBoundary">Download state, county border</a>
+<ul>
+<li>State boundary for the mainland</li>
+</ul></li>
 <li><a href="#MakeBoundary">Make boundary sf object from
 multi-polygons</a></li>
 <li><a href="#CreateXYColumns">Create X, Y columns</a></li>
@@ -1674,6 +1676,17 @@ KS_county_sf &lt;-
   st_as_sf() %&gt;%
   #--- transform using the CRS of the PRISM tmax data  ---#
   st_transform(terra::crs(prism_tmax_0701_sr))</code></pre>
+<p>State boundary for the mainland</p>
+<pre class="r"><code># All states in the mainland, US
+all_states &lt;- 
+  tigris::states(, cb = FALSE) %&gt;%
+  filter(!(STUSPS %in% c(&quot;HI&quot;, &quot;AK&quot;, &quot;AS&quot;, &quot;GU&quot;, &quot;MP&quot;, &quot;PR&quot;, &quot;VI&quot;, &quot;UM&quot;)))
+
+# County boundaries of all states in the main land, US
+all_cty &lt;- 
+  tigris::counties(, cb = FALSE) %&gt;%
+  filter(STATEFP %in% all_states$STATEFP) %&gt;%
+  select(STATEFP, COUNTYFP, GEOID)</code></pre>
 <p><br></p>
 <p><br></p>
 </div>

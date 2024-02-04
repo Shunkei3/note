@@ -71,6 +71,7 @@ library(gt)
 + [Common CRS](#CommonCRS)
   * [Finding appropriate CRS](#CRS)
 + [Download state, county border](#DonloadStateBoundary)
+  + State boundary for the mainland
 + [Make boundary sf object from multi-polygons](#MakeBoundary)
 + [Create X, Y columns](#CreateXYColumns)
 + [States or counties located in the US mainland](#mainland) 
@@ -189,6 +190,22 @@ KS_county_sf <-
   #--- transform using the CRS of the PRISM tmax data  ---#
   st_transform(terra::crs(prism_tmax_0701_sr))
 ```
+
+State boundary for the mainland
+
+```{r}
+# All states in the mainland, US
+all_states <- 
+  tigris::states(, cb = FALSE) %>%
+  filter(!(STUSPS %in% c("HI", "AK", "AS", "GU", "MP", "PR", "VI", "UM")))
+
+# County boundaries of all states in the main land, US
+all_cty <- 
+  tigris::counties(, cb = FALSE) %>%
+  filter(STATEFP %in% all_states$STATEFP) %>%
+  select(STATEFP, COUNTYFP, GEOID)
+```
+
 
 <br>
 
