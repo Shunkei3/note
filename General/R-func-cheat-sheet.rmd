@@ -15,7 +15,7 @@ geometry: margin=1in
 library(knitr)
 library(here)
 
-here::i_am("Dropbox/R-project/R-functions/GitControlled/General/R-func-cheat-sheet.rmd")
+# here::i_am("Dropbox/R-project/R-functions/GitControlled/General/R-func-cheat-sheet.rmd") 
 
 # opts_knit$set(root.dir = "")
 # opts_knit$set(root.dir = here())
@@ -86,6 +86,8 @@ library(gt)
 + [Storing a list within a data frame element](#store)
 + [Make a matrix of plots with a given data set](#ggally)
 + [parallel with loop function](#loop_parallel)
++ [Split data into a list of data by group](#split_data)
+
 
 ## Useful Packages:
 + tigris: to download shapefile
@@ -876,6 +878,15 @@ asymp.ci <-
 }
 ```
 
+
+## Split data into a list of data by group {#split_data}
+
+```{r}
+  ls_stn_sf_days <- 
+    stn_sf %>%
+    group_by(time) %>%
+    group_map(~.x, .keep = TRUE)
+```
 
 ---
 
