@@ -15,7 +15,7 @@ geometry: margin=1in
 library(knitr)
 library(here)
 
-here::i_am("Dropbox/R-project/R-functions/GitControlled/vis/R-vis.rmd")
+# here::i_am("Dropbox/R-project/R-functions/GitControlled/vis/R-vis.rmd")
 
 # opts_knit$set(root.dir = "")
 # opts_knit$set(root.dir = here())
@@ -80,7 +80,7 @@ library(gt)
 + [**Modify the legend**](#ChangeLegendName)
 + [**Plot Raster with facet**](#RasterFascet)
 + [**Color command**](#color)
-
++ [**ggplot with year**](#year)
 
 ## Useful Functions
 
@@ -548,6 +548,36 @@ tm_shape(bd_nrd_for_map) +
     frame = FALSE
     )
 ```
+
+
+## ggplot with year {#year}
+
+```{r}
+all_stn_count_m <- 
+  readRDS(here(base_dir, "z_Writing/all_stn_count_m.rds"))
+
+fig_all_stn_count <- 
+  ggplot(all_stn_count_m)+
+  geom_line(aes(x=year_month, y=Count, group=var, color=var))+
+  scale_x_date(
+    date_breaks = "1 year", 
+    # date_labels = "%b/%Y"
+    date_labels = "%Y"    
+  ) +
+  theme_bw() +
+  # theme(
+  #   axis.text.x=element_text(angle=60, hjust=1))+
+  labs(x = "Year-Month", y = "Count") +
+  theme(
+    legend.position = "bottom"
+  ) +
+  scale_color_discrete(
+    name = "Weather stations",
+    labels=c("Precipitation", "Maximum temperatures", "Minimum temperatures")
+    )
+```
+
+
 
 ---
 
