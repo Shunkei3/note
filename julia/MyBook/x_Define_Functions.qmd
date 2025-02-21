@@ -1,0 +1,134 @@
+---
+title: "User Defined Functions"
+author: "Shunkei Kakimotos"
+format:
+  html:
+    self-contained: true
+    code-fold: false
+jupyter: julia-1.11
+---
+
+```{julia, eval=FALSE}
+# If you run this for the first time
+# using Pkg
+# Pkg.add(["BenchmarkTools", "DataFrames", "DelimitedFiles", "CSV", "XLSX", "Downloads"])
+```
+
+```{julia}
+using Pkg
+Pkg.activate(".")
+
+using BenchmarkTools
+using DataFrames
+using DelimitedFiles
+using CSV
+using XLSX
+using Downloads
+```
+
+::: {.callout-tip}
+## See this:
++ [Functions - Julia](https://docs.julialang.org/en/v1/manual/functions/)
+:::
+
+
+# Higher-Order Functions
+
+## Functions of functions
+```{julia}
+twice(f, x) = f(f(x))
+
+# === Ex 1 === #
+f(x) = x^2
+@show twice(f, 2.0)
+
+# === Ex 2 === #
+@show twice(x-> x^2, 2.0)
+
+# === Ex 3 === #
+g(x) = a*x
+a = 5
+@show twice(g, 2.0)
+```
+
+::: {.callout-note}
+## NOTE:
++ When you use function within a function, you can create an outer function that takes 
+  + a name of the inner function.
+  + shorthand function definition (e.g., `x -> x^2`).
+:::
+
+## A function that returns a closure itself
+```{julia}
+function multiplyit(a, g)
+  return x -> a * g(x) # function with `g` used in the closure
+end
+
+f(x) = x^2
+h = multiplyit(2.0, f)
+h(2)
+```
+
+# Various way to define functions: 
+
++ `function function_name(x) ... end`
++ `function_name(x) = ...`
++ `x -> ...`
+  + no function name
+  + Tipically this is used as an argument to another function.
+
+
+## Method 1
+```{julia}
+# === Example === #
+function f(a, b)
+  a + b
+end
+
+# === Example === #
+function foo(x)
+    if x > 0
+        return "positive"
+    end
+    return "nonpositive"
+end
+
+# === Example === #
+function generatedata(n::Int64)
+    ep = randn(n) # Empty array of size n
+    for i in eachindex(ep)
+        ep[i] = ep[i]^2
+    end
+    return ep
+end
+
+data = generatedata(10);
+```
+
+
+## Method 2 for short function
+```{julia}
+f(x) = sin(1 / x)
+```
+
+
+## Method 3: Anonymous function with `->`
+```{julia}
+x -> sin(1/x) # equivalent to f(x) = sin(1/x)
+map(x -> sin(1/x), [1, 2, 3]) #  # apply function to each element
+```
+
+
+::: {.callout-tip}
++ `randn(n) .^ 2` means that each element of the array is squared.
++ `f.(randn(n))`: Broadcasting (. before f) applies f element-wise to all elements in the array from randn(n). 
++ same as:
+
+```julia
+array = randn(n)
+f_array = [f(x) for x in array]
+```
+
++ `gen.(randn(n))` means that each element of the `randn(n)` array is passed to the `gen` function.
+  + High degrees of abstraction and generality, e.g. passing in a function f in this case, can make code either clearer or more confusing, but Julia enables you to use these techniques with no performance overhead.
+:::

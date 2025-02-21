@@ -1,0 +1,368 @@
+---
+title: "Useful Functions"
+author: "Shunkei Kakimotos"
+format:
+  html:
+    self-contained: true
+    code-fold: false
+jupyter: julia-1.11
+---
+
+```{julia, eval=FALSE}
+# If you run this for the first time
+# using Pkg
+# Pkg.add(["BenchmarkTools", "DataFrames", "DelimitedFiles", "CSV", "XLSX", "Downloads"])
+```
+
+```{julia}
+using Pkg
+Pkg.activate(".")
+
+using Plots
+```
+
+# Table of contents:
+
+## Basic
++ [**Tuple**: `()`](#tuple)
++ **Array**: `[]`
+  + Vector (one dimensional array): `[1, 2, 3, 4]` or `[1; 2; 3; 4]`
+    + They are interpreted as a column vector
+    + `[1, 2, 3, 4] == [1; 2; 3; 4]` 
+  + `[1 2 3 4]` is a 1 x 4 matrix
+  + `[1; 2; 3; 4;;]` is 4 x 1 matrix
+  + Matrix (e.g., `D = [1 2; 3 4]`)
+    + 
+
++ **Iterables**;
+  + An iterable is something you can put on the right hand side of for and loop over (e.g., arrays, dictionary).
+   
+
++ [**Comprehensions**](#Comprehensions)
+  + `A = [F(x, y, ...) for x=rx, y=ry, ... ]`
+  +  a tool for creating new arrays, dictionaries, etc. from iterables
+
+  > Comprehensions provide a general and powerful way to construct arrays.
+  
+
++ [**Generator Expressions**](#generator) (this is kinda complicated...)
+  + `(f(x) for x in iter)`
+  + With this expressions, you don't need to create an iterable list before you apply it to the function.
+  + generators leads to code that is faster or slower depends on the circumstances
+
+  > Comprehensions can also be writte ***without the enclosing square brackets***, producing an object known as a **generator**. This object can be iterated to produce values on demand, instead of allocating an array and storing them in advance (see Iteration). 
+
++ [**Broadcasting**](#broadcasting)
+  + `f.(x)` where `f` is any functions including user-defined functions.
+    + `.` means element by element binary operation.    
+  + Suppose that we have a fucntion `f` sucha that `f(x)` returns a number for any number `x`, and we wish to apply `f` to ***every element of an iterable `x_vec`*** to produce a new result `y_vec`.
+  + `@.` is a macro that allows you to write elementwise operations without the `.` syntax.
+  + `Ref`
+
+---
+
+## Topicks
++ [**Strings**](#strings)
++ [**"`1:5` or `[1,2,3,4,5]`**](#range_dense)
++ [**what are the differences among Comprehensions, Generator Expressions, and Broadcasting**](#comp_gen_bro)
+
+## List of symbols
+
++ `.` symbol for broadcasting. `randn(n) .^ 2` means that each element of the array is squared.
+
++ `!` symbol
+  + 1. `function_name!()` means that it `mutate` (`modifies`) its input. (`sort!(arr)` modifies `arr` directory)
+  + 2. `! negates a boolean `
+
++ `@show`
++ `@assert`is used for debugging and enforcing conditions in your code. It checks whether a given condition is true, and if it’s false, Julia throws an AssertionError.
+  + `@assert condition`
+  + `@assert x > 5 "x must be greater than 5!"`
+
++ `\cdot`
+
++ [Ternary operation `a ? b`](#ternary)
+
+
+## List of functions
++ `rand()`: random number generator
++ `zeros(n)` or `zeros(nrow, ncol)`
++ `fill(x, nrow, ncol)`: returns an array filled with a single value
++ `x = Array{Float64}(undef, 2, 2)` to create an empty array
++ `ndims(a)` and `size(a)` to know the dimension
++ [`repeat()`](#repeat)
+
++ [`ByRow()`](#ByRow)
+
++ [`map()`](#map)
+  + applies a function to each value of an array and returns a new array containing the resulting values:
+
++ merge functions
+  + `leftjoin`, `rightjoin`, `innerjoin`, `outerjoin`
+
++ `copy(x)` to make a copy of `x`
++ [`similar()`](#similar)
+  + to create a new uninitialized array with the same type and shape as a given array or array-like structure.
+  + `similar(x, 2, 2)` to make a 2 by 2 matrix 
+
++ `groupby()` and `combine()`
+
++ Iterables
+  + `keys()`
+  + `collect(keys(d))`
+  + `eachindex()`
+  + `zip()`
+
+
+---
+# Demonstration
+
+## Tuple {#tuple}
++ (;value = x_old, normdiff, iter) is identical to (value = x_old, normdiff = normdiff, iter = iter) where anything after the ; is assumed to be a keyword with the name identical to the local variable.
+
+```{julia}
+x_old = 1; normdiff = 2; iter = 3
+(value = x_old, normdiff = normdiff, iter = iter)
+(;value = x_old, normdiff, iter)
+```
+
+
+## Comprehensions {#Comprehensions}
+
+```{julia}
+doubles = [2i for i in 1:4]
+
+animals = ["dog", "cat", "bird"]; 
+plurals = [animal * "s" for animal in animals]
+
+[i + j + k for i in 1:3, j in 4:6, k in 7:9]
+
+[(i, j) for i in 1:2, j in animals]
+```
+
+## Generator Expressions {#generator}
+
+### Example 1
+```{julia}
+# === Without generator expression (naive) === #
+# 1. create iterators (array)
+xs = 1:10000
+# 2. Define function
+f(x) = x^2
+# 3. Iteration
+f_x = f.(xs)
+sum(f_x)
+
+# === Without generator expression (with Comprehensions) === #
+sum([x^2 for x in 1:10000]) # still allocates temporary
+# or
+# sum(f.(xs))
+
+# === With genertor expression === #
+# All you need do this is drop the ']' brackets
+sum(x^2 for x in 1:10000)
+
+
+#/*--------------------------------*/
+#' ## Speed Comparision
+#/*--------------------------------*/
+# using BenchmarkTools
+# @btime sum([f(x) for x in xs])
+# @btime sum(f.(xs))
+# @btime sum(f(x) for x in xs);
+
+```
+
+## Broadcasting {#broadcasting}
+
+> The broadcasting notation is not simply vectorization, as it is able to "fuse" multiple broadcasts together to generate efficient code.
+
++ this means that multiple broadcasted operations are automatically combined into a single efficient computation without creating intermediate arrays.
+
+### Example: With and Without Broadcasting
+```{julia}
+# Apply sin(x) function to every element of x_vec, and stor the results in y_vec.
+# === Without broadcasting === #
+x_vec = [2.0, 4.0, 6.0, 8.0]
+y_vec = similar(x_vec)
+
+for (i, x) in enumerate(x_vec)
+    y_vec[i] = sin(x)
+end
+
+# === With broadcasting === #
+y_vec = sin.(x_vec)
+```
+
+## Example: Using `@.`
+
+```{julia}
+A = rand(1_000_000)  # Large array
+B = rand(1_000_000)
+C = sum(@. (A + B) * 2); # Equivalent to C = sum((A .+ B) .* 2)
+```
+
+### Example
+```{julia}
+x = 1.0:1.0:5.0
+y = [2.0, 4.0, 5.0, 6.0, 8.0]
+z = similar(y) # this creates an uninitialized array of the same size and type as y to avoid memory allocation for a new array.
+z .= x .+ y .- sin.(x) # generates efficient code instead of many temporaries
+```
+
+### Example: How to use `Ref`?
+
+```{julia}
+using LinearAlgebra
+f(x, y) = [1, 2, 3] ⋅ x + y   # "⋅" can be typed by \cdot<tab>
+f([3, 4, 5], 2)   # uses vector as first parameter
+f.(Ref([3, 4, 5]), [2, 3])   # broadcasting over 2nd parameter, fixing first
+```
+
+
+
+
+
+## Ternary operation `a ? b` {#ternary}
+
+`condition ? expr1 : expr2` means that if `a` is true, then `b` is returned. Otherwise, `c` is returned.
+
+```{julia}
+# === Without using ? === #
+function snapabove(g, a)
+    function f(x)
+        if x > a         # "a" is captured in the closure f
+            return g(x)
+        else
+            return g(a)
+        end
+    end
+    return f    # closure with the embedded a
+end
+
+
+# === With ? === #
+function snapabove2(g, a)
+  return x -> x > a ? g(x) : g(a)
+end
+
+plot(snapabove2(f, 2.0), 0.0:0.1:3.0)
+```
+
+
+
+
+## `1:5` or [1,2,3,4,5] {#range_dense}
+
++ `1:5` creates a range object (UnitRange), which does not store all elements explicitly.
+  + This makes it highly memory efficient, especially for large sequences.
++ `[1,2,3,4,5]` creates a dense array (a Vector{Int64})
+  + All elements are explicitly stored in memory, consuming more memory comapred to a range, especially for large lists.
+
+```{julia}
+A = 1:5
+B = [1,2,3,4,5] 
+
+@show typeof(A)
+@show typeof(B)
+
+# x = 1_000_000
+# @btime sum(1:1_000_000) # 1.042 ns (0 allocations: 0 bytes)
+# @btime sum(collect(1:1_000_000)) # 251.375 μs (3 allocations: 7.63 MiB)
+```
+
+
+## Comprehensions, Generator Expressions, and Broadcasting {#comp_gen_bro}
+
+In Julia, generators, comprehensions, and broadcasting are all ways to perform iterative operations efficiently, but they differ in how they handle memory and execution. Below is a refined explanation with comparisons.
+
+**Comprehensions** (`[x for x in ...]`)
+```{julia}
+arr = [x^2 for x in 1:1_000_000]  # Allocates memory for 1M elements
+sum_result = sum(arr)
+```
+
++ Pros: 
+  + Can be indexed (arr[1]).
+	+	Faster than broadcasting in some cases (preallocated memory).
+	+	More readable.
+
++ Cons:
+  + Allocates memory, which can be expensive for large datasets.
+
+**Generator expressions** (*(x for x in ...)*)
+```{julia}
+gen = (x^2 for x in 1:1_000_000)  # Generator does not store values
+sum_result = sum(gen)  # Computes the sum without allocating an array
+```
+
++ Pros: 
+  + Most memory-efficient (does not allocate an array).
+  + Faster when used with functions like sum, prod, maximum, etc.
++ Cons: 
+  + Cannot be indexed (gen[1] is not allowed).
+  + If you need to use values multiple times, you have to regenerate them.
+
+**Broadcasting** (`f.(...)`)
+
+```{julia}
+arr = 1:1_000_000
+result = arr .^ 2
+```
+
++ Pros:
+  + Efficient for element-wise operations on existing arrays.
+  +	Supports in-place operations to save memory (A .= A .+ 10).
+
++ Cons:
+	+	Allocates memory if not used in-place (A = A .+ 1 creates a new array).
+	+	Not always as fast as comprehensions for simple loops.
+
+
+
+## repeat() {#repeat}
+
+```{julia}
+A = 1:5
+println(repeat(A, 2)) 
+println(repeat(A, 2, 2)) 
+
+# Constructing an array by repeating the specified 2D array with the specified number of times. 
+D = [1 2; 3 4]; 
+println(repeat(D, 2, 2)) 
+```
+
+
+## ByRow(){#ByRow}
+
+
+## map() {#map}
++ applies a function to each value of an array and returns a new array containing the resulting values:
+```{julia}
+map(round, [1.2, 3.5, 1.7])
+
+map(x -> x^2 + 2x - 1, [1, 3, -1])
+```
+
+
+
+## zip()
+```{julia}
+countries = ("Japan", "Korea", "China")
+cities = ("Tokyo", "Seoul", "Beijing")
+zip(countries, cities)
+
+for (country, city) in zip(countries, cities)
+    println("The capital of $country is $city")
+end
+```
+
+## Strings {#strings}
+
+```{julia}
+plurals = [animal * "s" for animal in animals]
+
+
+```
+
+

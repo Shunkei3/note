@@ -1,3 +1,10 @@
 .DS_Store
-UMN
+z_others/*
 Econometrics
+
+.vscode
+.vdoc.r
+
+julia/z_Archive
+julia/MyBook/z_Data
+julia/DataScience/data

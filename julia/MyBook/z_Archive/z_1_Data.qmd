@@ -1,0 +1,487 @@
+---
+title: "1 Data"
+author: "Shunkei Kakimotos"
+format:
+  html:
+    self-contained: true
+    code-fold: false
+jupyter: julia-1.11
+---
+
+```{julia, eval=FALSE}
+# If you run this for the first time
+using Pkg
+Pkg.add(["BenchmarkTools", "DataFrames", "DelimitedFiles", "CSV", "XLSX", "Downloads"])
+```
+
+```{julia}
+using Pkg
+Pkg.activate(".")
+
+using BenchmarkTools
+using DataFrames
+using DelimitedFiles
+using CSV
+using XLSX
+using Downloads
+```
+
+::: {.callout-important}
+## Topics
++ How to download data from the web using `Downloads.download()`
++ How to load data from a `.csv` file using `CSV.read()`
++ How to load data from an Excel file using `XLSX.readdata()`
++ Basic operation with DataFrames
+  + Matrix to DataFrame, XLSX.dattable to DataFrame  
+  + How to extract a specific column
+  + Some of the basic functions on DataFrames such as: `dropmissing`, `describe`, `combine(groupby)`, and `innerjoin`
++ Write a function (Introduction)
++ Difference between `.==` and `==` operator
++ What is short-circuit evaluation? (e.g., `&&` and `||`)
++ How to use dictionaries (`Dict()`)
+:::
+
+
+::: {.callout-important}
+## Sub-Function
++ `findfirst(function, collection)` 
+  + to find the first index of a given element in an array
+```{julia}
+#| eval: false
+A = [false false; true false]
+findfirst(A)
+
+A = [1, 4, 2, 2]
+indfirst(iseven, A)
+```
+
+
++ `findall()`
+  + to find all indices of a given element in an array
++ `size()`
+  + `size(df, 1)` returns the number of rows (like `nrow()` in R)
++ `push!(collection, element)`
+  + is a mutating fucntion that adds an element to the end of a collection (like an array or vecotr) in place.
+```{julia}
+#| eval: false
+v = [1, 2, 3]
+push!(v, 4)  # Adds 4 to the end of v
+println(v)
+```
++ `[]` to make a new array (vector)
+  + Eg., `P_df.language[1]]` returns the first element of the column `language` in the DataFrame `P_df` with a vector type. 
++ `P_df.year[2:end]`
+  + you can use `end` to refer to the last element of an array.
++ `enumerate()` to iterate over the elements of an array and return both the index (i) and the value of each element (x)
+  + this yields (i, x).
++ `collect(iterable)` converts an iterable (like a dictionary’s keys, a range, or a generator) into an array (Vector).
+```{julia}
+#| eval: false
+# === Converting Dictionary Keys to an Array === #
+d = Dict(1995 => "Java", 1983 => "C++", 1991 => "Python")
+keys_vec = collect(keys(d))  # Converts dictionary keys to an array
+println(keys_vec)
+```
++ `map(function, collection)` to apply a function to each element of a collection and returns a new collection with the results.
+```{julia}
+#| eval: false
+numbers = [1, 2, 3, 4]
+squared = map(x -> x^2, numbers)
+println(squared)
+```
+:::
+
+
+::: {.callout-tip}
+## Functions
+
++ **`Downloads.download()`** to download a file from the web.
+
+```{julia}
+#| eval: false
+Downloads.download(url, output_path)
+```
+
++ **`readdlm()`** to read a `.csv` file and `xlsx` files, or just raw text files.
+  + from `DelimitedFiles`, which is in the standard library. 
+
+```{julia}
+#| eval: false
+readdlm(source, 
+    delim::AbstractChar, 
+    T::Type, 
+    eol::AbstractChar; 
+    header=false, 
+    skipstart=0, 
+    skipblanks=true, 
+    use_mmap, 
+    quotes=true, 
+    dims, 
+    comments=false, 
+    comment_char='#')#| 
+```
+
++ **writedlm()** to write to a text file
+```{julia}
+#| eval: false
+writedlm("programminglanguages_dlm.txt", P, '-')#| 
+```
+
++ **CSV.read()** to read a `.csv` file (this is more effcient)
+
+```{julia}
+#| eval: false
+C = CSV.read("programming_languages.csv", DataFrame);
+@show typeof(C)
+C[1:10, :]
+```
+
++ *NOTE*: 
+  + The semicolumn `;` at the end of the line suppresses the output of the command. 
+  + `@` symbol denotes a macro
+  + `@show` is a macro that prints the expression and its result to the console.
+
++ **`CSV.write()`** to write to a `.csv` file using the CSV package
+
+```{julia}
+#| eval: false
+CSV.write("programminglanguages_CSV.csv", DataFrame(P, :auto))
+```
+
+
++ **innerjoin()**
+```{julia}
+#| eval: false
+foods = ["apple", "cucumber", "tomato", "banana"]
+calories = [105,47,22,105]
+prices = [0.85,1.6,0.8,0.6,]
+dataframe_calories = DataFrame(item=foods,calories=calories)
+dataframe_prices = DataFrame(item=foods,price=prices)
+
+DF = innerjoin(dataframe_calories,dataframe_prices,on=:item)
+```
+
++ **findfirst()** to find the first index of a given element in an array
+```{julia}
+
+A = [1, 4, 2, 2]
+findfirst(iseven, A) # iseven is a built-in function that checks whether a given number is even
+
+A = [false, false, true, false]
+findfirst(A)
+```
+
++ **`==`  and `.==` operators**
+  + `==` is used to compare two values or entire arrays.
+  + `.==` is used to compare two arrays element-wise.
+
+```{julia}
+#| eval: false
+A = [1,2,3,4]
+A == 2
+A .== 2 # compare each element of A with 2
+```
+
++ **Short-circuit evaluation**
+  + `&&` and `||` are used for short-circuit evaluation (NOTE: they are usually used as logical operators for "and" and "or")
+  + `a && b`: the subexpression `b` is only evaluated if `a` is true.
+  + `a || b`: the subexpression `b` is only evaluated if `a` is false.
+
+For example, you can use this feature to avoid an error when the index is not found in an array.
+
+```{r}
+#| eval: false
+loc = findfirst(P[:, 2] .== language)
+!isnothing(loc) && return P[loc, 1]
+```
+
+```{julia}
+#| eval: false
+function fun_logic(num::Int64)
+    num <= 3 && return println("i is less than 3")
+    println("i is greater than 3")
+end
+
+fun_logic(2)
+fun_logic(4)
+```
+
++ **Dictionaries with `Dict()`**
+  + `key => value` pairs are used to build a dictionary.
+```{julia}
+#| eval: false
+# A quick example to show how to build a dictionary
+Dict([("A", 1), ("B", 2),(1,[1,2])])
+
+
+P_dictionary = Dict{Integer, Vector{String}}()
+P_dictionary[67] = ["Julia", "programming"]
+
+keys(P_dictionary)
+
+# this is not gonna work because the key is not an integer
+# P_dictionary["Julia"] = 7
+```
+
+
+:::
+
+
+
+# Data Management - Basic
+
+## Download Data
+```{julia}
+P = Downloads.download(
+    "https://raw.githubusercontent.com/nassarhuda/easy_data/master/programming_languages.csv",
+    "z_Data/programming_languages.csv"
+  )
+# or using terminal
+# ;wget https://raw.githubusercontent.com/nassarhuda/easy_data/master/programming_languages.csv
+```
+
+```{julia}
+#| eval: false
+# Take a look at the first few lines
+;head z_Data/programming_languages.csv
+```
+
+
+## Load Data
+```{julia}
+# /*===== Load the .csv file (or ) with  DelimitedFiles.readdlm function =====*/
+P, H = readdlm("z_Data/programming_languages.csv", ',', header=true)
+# Header
+H
+# Data
+P
+
+# /*===== CSV package =====*/
+C = CSV.read("z_Data/programming_languages.csv", DataFrame);
+
+@show typeof(C)
+
+# /*===== XLSX package =====*/
+T = XLSX.readdata(
+      "z_Data/zillow_data_download_april2020.xlsx", #file name
+      "Sale_counts_city", #sheet name
+      "A1:F9" #cell range
+    )
+
+typeof(T)
+
+# --- Matrix to DataFrame --- #
+DataFrame(T, :auto)
+
+# /*===== XLSX package =====*/
+G = XLSX.readtable(
+  "../DataScience/data/zillow_data_download_april2020.xlsx",
+  "Sale_counts_city"
+  );
+
+typeof(G)
+
+# --- Tuple to DataFrame --- #
+D = DataFrame(G);
+```
+
+
+## Some operations with DataFrames
+```{julia}
+# First 10 rows
+C[1:10, :]
+
+# First 10 rows of the column "year" as a DataFrame
+C[1:10, [:year]]
+
+# Vector of elements in the column "year"
+C[!, :year] # same as C.year or C[!, "year"]
+C[:, :year] 
+
+# Column names
+names(C)
+
+# Summary of the DataFrame
+describe(C)
+```
+
+::: {.callout-note}
++ `:`  in `:year` is used to tell Julia that `year` is a symbol, not a string.
++ `!` in `C[!, :year]` is a modifier that specifies column selection without making a copy.
+  + `C[!, :year]` returns a direct reference to the column, meaning changes to it modify the original DataFrame.
+	+	`C[:, :year]` returns a copy, so changes do not affect the original DataFrame.
+:::
+
+
+## `join` operator
+```{julia}
+foods = ["apple", "cucumber", "tomato", "banana"]
+calories = [105,47,22,105]
+prices = [0.85,1.6,0.8,0.6,]
+dataframe_calories = DataFrame(item=foods,calories=calories)
+dataframe_prices = DataFrame(item=foods,price=prices)
+
+DF = innerjoin(dataframe_calories, dataframe_prices, on=:item)
+```
+
+# Various data types
+
+```{julia}
+#| eval: false
+
+#/*--------------------------------*/
+#' ## jld file (Julia's native format)
+#/*--------------------------------*/
+using JLD
+jld_data = JLD.load("../DataScience/data/mytempdata.jld")
+save("z_Data/mywrite.jld", "A", jld_data)
+
+typeof(jld_data)
+keys(jld_data)
+
+#/*--------------------------------*/
+#' ## npz file (numpy's native format)
+#/*--------------------------------*/
+using NPZ
+npz_data = npzread("../DataScience/data/mytempdata.npz")
+npzwrite("z_Data/mywrite.npz", npz_data)
+
+
+#/*--------------------------------*/
+#' ## RData file
+#/*--------------------------------*/
+using RData
+R_data = RData.load("../DataScience/data/mytempdata.rda")
+typeof(R_data)
+# We'll need RCall to save here. https://github.com/JuliaData/RData.jl/issues/56
+using RCall
+@rput R_data
+R"save(R_data, file=\"mywrite.rda\")"
+```
+
+# Write a function
+
+```{julia}
+first(P, 10)
+```
+
+# Q1: Which year was a given language invented?
+
+```{julia}
+# Error handling 
+function year_created(P, language::String)
+    # language = "Julia"
+    loc = findfirst(P[:, 2] .== language)
+
+    # If the loc is not empty, return the year
+    !isnothing(loc) && return P[loc, 1]
+    # otherwise, return an error message
+    error("Error: Language not found")
+end
+
+year_created(P, "Julia")
+# year_created(P, "W")
+```
+
+
+# Q2: How many languages were created in a given year?
+
+```{julia}
+function how_many_per_year(P, year::Int64)
+    count = sum(P[:, 1] .== year)
+    return count
+end
+
+how_many_per_year(P, 2011)
+```
+
+```{julia}
+#/*--------------------------------*/
+#' ## Store in a DataFrame
+#/*--------------------------------*/
+P_df = C;
+# Even better, since we know the types of each column, we can create the DataFrame as follows:
+# P_df = DataFrame(year = Int.(P[:,1]), language = string.(P[:,2]))
+
+# /*===== Define functions =====*/
+# function year_created(P_df, language::String)
+#     # find the index of the language
+#     loc = findfirst(P_df.language .== language)
+#     !isnothing(loc) && return P_df.year[loc]
+#     error("Error: Language not found")
+# end
+
+# year_created(P_df, "Julia")
+# year_created(P_df, "W")
+
+function how_many_per_year(P_df, year::Int64)
+    year_count = length(findall(P_df.year.==year))
+    return year_count
+end
+
+# /*===== Dictionaries =====*/
+# Here, I want to create a dictionary where the key is the year and the value is a vector of languages created in that year.
+
+dict = Dict{Integer, Vector{String}}()
+# For a given number of rows, 
+for i in 1:size(P, 1)
+    # i = 1
+    # Extract year and language
+    year, language = P[i, :]
+    if year in keys(dict)
+    # If the year is already in the dictionary, append the language
+      dict[year] = push!(dict[year], language)
+    else
+    # Otherwise, create a key-value pair
+      dict[year] = [language]
+    end
+end
+
+
+# Another way to do the same thing
+P_dictionary = Dict{Integer,Vector{String}}()
+
+curyear = P_df.year[1]
+P_dictionary[curyear] = [P_df.language[1]]
+
+P_df.language[1]
+
+for (i, nextyear) in enumerate(P_df.year[2:end]) # i is the index, nextyear is the value of the year
+    if nextyear == curyear
+    # if the year is the same as the current year, append the language
+      P_dictionary[curyear] = push!(P_dictionary[curyear], P_df.language[i+1])
+    else
+    # otherwise, create a new key-value pair
+      curyear = nextyear
+      P_dictionary[curyear] = [P_df.language[i+1]]
+    end
+end
+
+# Check
+# length(keys(P_dictionary)) == length(unique(P[:, 1]))
+
+
+# /*===== Use function with a dictionary =====*/
+
+# /*----  Q1: Which year was was a given language invented? ----*/
+function year_created(P_dictionary, language::String)
+    # language = "Julia"
+    
+    # convert the dictionary keys to an array
+    keys_vec = collect(keys(P_dictionary))
+    lookup = 
+      map(
+        keyid -> findfirst(P_dictionary[keyid] .== language), # function to fubd 
+        keys_vec # collection (iterate over the keys)
+      )
+    # The lookup has nothing or a numeric value.
+    # We want to find the index of the numeric value.
+    return keys_vec[findfirst(!isnothing, lookup)]
+end
+
+year_created(P_dictionary, "Julia")
+
+# --- Q2: How many languages were created in a given year? --- #
+how_many_per_year(P_dictionary, year::Int64) = length(P_dictionary[year])
+how_many_per_year(P_dictionary, 2011)
+```

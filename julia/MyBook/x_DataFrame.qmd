@@ -1,0 +1,16 @@
+---
+title: "DataFrame"
+author: "Shunkei Kakimotos"
+format:
+  html:
+    self-contained: true
+    code-fold: false
+jupyter: julia-1.11
+---
+
+```{julia}
+using Pkg
+Pkg.activate(".")
+
+using DataFrames, RDatasets
+```

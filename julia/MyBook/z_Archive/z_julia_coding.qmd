@@ -1,0 +1,463 @@
+---
+title: "Julia Coding"
+author: "Shunkei Kakimotos"
+format:
+  html:
+    toc: true
+    numberSections: true
+    code-fold: false
+jupyter: julia-1.11
+---
+
+```{julia}
+using Pkg
+Pkg.activate(".")
+
+using LinearAlgebra, Statistics, Plots, Distributions, QuantEcon, Random, LaTeXStrings
+using DataFrames
+using CSV
+```
+
+## Rendering
+
+```{julia}
+#| eval: false
+# plain text qmd
+quarto render julia.qmd
+quarto render julia.qmd --to pdf
+
+## ipynb notebook
+quarto render julia.ipynb
+quarto render julia.ipynb --to docx
+
+#/*--------------------------------*/
+#' ## Preview
+#/*--------------------------------*/
+# plain text qmd
+quart preview julia.qmd
+quart preview julia.qmd --to pdf 
+
+## ipynb notebook
+quart preview julia.ipynb
+quart preview julia.ipynb --to docx
+```
+
+
+# Basic rules
+
+## Common Data Types
+### Primitive Data Types
++ Booolean value
++ Float64
++ Int64
++ @show to display both text and the results
+
+### Strings
++ `$`  inside of a string is used to interpoloate a variable.
+```{julia}
+x = 10; y = 20;
+"x = $x"
+# "x + y = $(x + y)"
+```
+
++ To concatenate strings, use `*`
+```{julia}
+"Hello" * " " * "World"
+```
+
++ split a string
+```{julia}
+s = "hello world how are you"
+split(s)
+
+split("fee,fi,fo", ",")
+```
+
++ to replace a substring
+```{julia}
+replace(s, "world" => "Julia")
+```
+
++ stript() removes leading and trailing whitespaces
+```{julia}
+strip("  hello world  ")
+```
+
++ slicing
+```{julia}
+str = "foobar"
+str[3:end]
+```
+
+
+### Containers
+
++ ***Tuple***: immutable and can contain different types of data
+  + An immutable valkue is one that cannot be alterned once it resides in memory.
+    + So, you can't change the value of a tuple once it's created. Thus, tuples doe not support item assignment.
+  + Tuples can be created with or without parentheses.
+  + Tuples can be created with hanging `,` , which is usuful when creating a tuple with a single element.
+
++ ***Vector*** : 
+  + Vectors are 1D arrays.
+
++ ***Dictionary***: is like an array except that the items are named instead of numbered.
+  + "keys" are mapped to "values"
+  + they can be accessed by `keys (d)` and `values (d)`
+    + `keys(d)` retuns an iterator that can be looped over. The benefit of providing an iterator rather than an array, say, is that the former is more memory efficient. 
+    + `collect(keys(d))` transforms an iterator into an array.
+  + NOTE: the flexibility (i.e. can store anything and use anything as a key) frequently comes at the cost of performance if misused.
+  + It is usually better to have collections of parameters and results in a named tuple, which both provide the compiler with more opportunties to optimize the performance, and also makes the code more safe.
+
+  
+```{julia}
+#/*--------------------------------*/
+#' ## tuple
+#/*--------------------------------*/
+x = (10, "foo", false)
+# Tuple can be constructed with or without parentheses
+x = 10, "foo", false
+
+x = ("foo", 1)
+word, value = x 
+println("word = $word, value = $value")
+
+# hanging comma
+x = 10; typeof(x) # Int64
+x = (10,); typeof(x) # Tuple{Int64}
+
+#/*--------------------------------*/
+#' ## Vector
+#/*--------------------------------*/
+x = [10, 20, 30, 40]
+x[end]
+x[end - 1]
+x[1:3]
+
+#/*--------------------------------*/
+#' ## Dictionary
+#/*--------------------------------*/
+d = Dict("name" => "Frodo", "age" => 33)
+d["age"]
+
+keys(d)
+collect(keys(d))
+```
+
+## Comprehensions
+
+Comprehensions are an elegant tool for creating new arrays, dictionaries, etc. from iterables.
+
++ Comprehensions are created using `[]` and `for` loops.
+  + `[fn for x in iterable]`
+
+```{julia}
+doubles = [2i for i in 1:4]
+
+animals = ["dog", "cat", "bird"];
+plurals = [animal * "s" for animal in animals]
+
+[i + j for i in 1:3, j in 4:6]
+
+[i + j + k for i in 1:3, j in 4:6, k in 7:9]
+
+# /*===== Create arrays of tuples or named tuples =====*/
+[(i, j) for i in 1:2, j in animals]
+
+[(num = i, animal = j) for i in 1:2, j in animals]
+```
+
+## Generators
+
+A generator in Julia is a memory-efficient way to create an iterable sequence without storing all elements in memory. Instead of creating an entire array, generators compute elements lazily when needed.
+
++ Generators are created using the `()` syntax.
+
+```{julia}
+xs = 1:10000;
+f(x) = x^2
+f_x = f.(xs); # f is applied to each element of xs
+sum(f_x)
+
+# Using the comprehension
+sum([f(x) for x in xs]) # still allocates temporary
+
+# Using a generator
+sum(f(x) for x in xs) # no temporary allocation
+```
+
+::: {.callout-important}
+## Difference between Comprehensions and Generators
+
+For example, `[x^2 for x in 1:100]` and `(x^2 for x in 1:100)` are different. The former creates an 1D array (vector) comprehension, while the latter creates a generator. 
+
++ In `arr = [x^2 for x in 1:100]`,  all 100 elements are stored in memory.
++ In `gen = (x^2 for x in 1:100)`, values are computed one-by-one as needed.
+  + At this point, no values are computed yet.
+  + For example, `println(first(gen))` computes only the first value (Julia computes then on demand!. Only `1^2 = 1` was computed. The generator did not compute all 100 squares.). 
+  + On the iteration, the Julia computes one-by-one. (Julia takes x = 1, computes x^2 = 1^2 = 1, then discard it. Then Julia takes x = 2, ...).)
+:::
+
+
+## `!` in Julia
+In Julia, the ! symbol has two main uses:
+
+1.	Function Naming Convention → ! at the end of a function name means it mutates (modifies) its input.
+
+```{julia}
+# /*===== Ex 1 =====*/
+# Non-mutating (returns a new array)
+sort([3, 1, 2])  # Output: [1, 2, 3]
+
+# Mutating (modifies the array in-place)
+arr = [3, 1, 2]
+sort!(arr)  # Modifies `arr` directly
+println(arr)  # Output: [1, 2, 3]
+```
+
+2.	Logical NOT Operator → ! negates a Boolean (true ↔ false).
+```{julia}
+# /*===== Ex 1 =====*/
+x = 5
+if !(x > 10)  # Same as: if x <= 10
+    println("x is not greater than 10")
+end
+```
+
+
+
+
+
+# For loop
+
+::: {.callout-important}
++ `iterator` is more memory efficient than `array`.
+  + `keys(dictionary)` creates an `iterator` that is looped over.
+  + `eachindex(ep)` creates an `iterator` that is looped over.
++ `zip()` is used for stepping through pairs from two sequences.
++ `enumerate()` creates an iterator that yields (i, x) where i is
+  a counter starting at 1, and x is the ith
+  value from the given iterator
+:::
+
+
+
+```{julia}
+# /*===== Example 1 =====*/
+n = 100
+ep = zeros(n)
+for i in eachindex(ep)
+    ep[i] = randn()
+end
+
+# /*===== Example 2 =====*/
+# In Julia you can also loop directly over arrays themselves
+ep_sum = 0.0 # careful to use 0.0 instead of 0
+m = 5
+for ep_val in ep[1:m]
+    ep_sum = ep_sum + ep_val
+end
+ep_mean = ep_sum / m
+
+# equivalent to
+# mean(ep[1:m])
+
+# test
+ep_mean ≈ mean(ep[1:m])
+# isapprox(ep_mean, mean(ep[1:m])) # equivalent
+# ep_mean ≈ sum(ep[1:m]) / m
+
+# /*===== Example 3 =====*/
+actions = ["surf", "ski"]
+for action in actions
+    println("I love $action")
+end
+
+
+# /*===== Example 4: zip() =====*/
+countries = ["Japan", "US", "UK"]
+cities = ["Tokyo", "NY", "London"]
+for (country, city) in zip(countries, cities)
+    println("The capital of $country is $city")
+end
+
+# /*===== Example 5: enumerate() =====*/
+for (i, country) in enumerate(countries)
+    city = cities[i]
+    println("The capital of $country is $city")
+end
+```
+
+::: {.callout-tip}
+`≈` is the `isapprox` function in Julia. It is used to compare floating point numbers.
++ `x ≈ y` is the same as `isapprox(x, y)`.
++ How to type `≈` in Julia?: `\approx` + `TAB`
+:::
+
+---
+
+# Functions
+
+## Function
+
+### `randn` function
+
++ The function `rand()` is defined in the base library such that `rand(n)` returns `n` uniform random variables on [0, 1).
+
+```{julia}
+rand(3) # returns 3 random numbers in a 1D array
+rand(3, 2) # returns 3x2 matrix of random numbers
+
+using Distributions
+rand(Normal(), 3) # returns 3 random numbers from a normal distribution
+```
+
+
+
+:::{.callout-important}
+## Multiple Dispatch
++ functions in Julia can have different behavior depending on the particular arguments that they're passed. Hence in Julia, we can take an exisiting function and give it a new behavior by defining how it acts on a new type of value. 
+:::
+
+:::{.callout-important}
+## Multiple Dispatch
++ functions in Julia can have different behavior depending on the particular arguments that they're passed. Hence in Julia, we can take an exisiting function and give it a new behavior by defining how it acts on a new type of value. 
+:::
+
+
+## User-defined functions
+
+::: {.callout-important}
+## Two ways to define functions
+1. `function` and `end`
+2. `=` sign
+```julia
+# Style 1
+function f(x)
+    return x^2
+end
+
+# Style 2
+f(x) = x^2
+double(x) = 2x  # Simple multiplication
+add(x, y) = x + y  # Simple addition
+```
+:::
+
+
+## Example 1
+```{julia}
+function generatedata(n::Int64)
+    ep = randn(n) # Empty array of size n
+    for i in eachindex(ep)
+        ep[i] = ep[i]^2
+    end
+    return ep
+end
+
+data = generatedata(10);
+plot(data)
+
+# better style
+function generatedata(n::Int64)
+    ep = randn(n) # Empty array of size n
+    return ep .^ 2
+end
+generatedata(5);
+
+# Good style
+generatedata(n::Int64) = randn(n) .^ 2
+data = generatedata(5);    
+```
+
+```{julia}
+#/*--------------------------------*/
+#' ## Broadcasting
+#/*--------------------------------*/
+f(x) = x^2 # simple square function
+generatedata(n) = f.(randn(n)) # broadcasts on f
+generatedata(5)
+
+#/*--------------------------------*/
+#' ## Abstract approach
+#/*--------------------------------*/
+generatedata(n::Int64, gen) = gen.(randn(n)) # broadcasts on gen
+f(x) = x^2
+data = generatedata(5, f)
+```
+
+::: {.callout-tip}
++ `randn(n) .^ 2` means that each element of the array is squared.
++ `f.(randn(n))`: Broadcasting (. before f) applies f element-wise to all elements in the array from randn(n). 
++ same as:
+
+```julia
+array = randn(n)
+f_array = [f(x) for x in array]
+```
+
++ `gen.(randn(n))` means that each element of the `randn(n)` array is passed to the `gen` function.
+  + High degrees of abstraction and generality, e.g. passing in a function f in this case, can make code either clearer or more confusing, but Julia enables you to use these techniques with no performance overhead.
+:::
+
+<br>
+
+---
+# Plot
+
+## Plot multiple lines
+```{julia}
+# direct solution with broadcasting, and small user-defined function
+n = 100
+f(x) = x^2
+
+x = randn(n)
+plot(f.(x), label = L"x^2")
+plot!(x, label = L"x") # layer on the same plot
+```
+
+
+## Histogram
+
+```{julia}
+using Distributions
+
+function plot_hist(distribution, n::Int64)
+    # n = 5; distribution = Normal()
+    ep = rand(distribution, n) # n draws from distribution
+    histogram(ep)
+end
+
+plot_hist(Laplace(), 100) # 
+```
+
+::: {.callout-tip}
++ `rand(distribution, n)` draws `n` random numbers from the provided distribution.
++ `Laplace()` creates an instance of a data type defined in the Distributions module that represents the Laplace distribution.
+:::
+
+
+
+<!-- ---
+
+# DataFrames
+
+
+
+## Filtering a DataFrame
+
+```{julia}
+#| eval: false
+# With one condition for one variables
+cot_data = crop_data[crop_data.Crop .== "COT", :]
+
+# With multiple conditions for one variable ("or" )
+crop_data[in.(crop_data.Crop, Ref(["COT", "RI"])), :]
+
+```
+
+
+::: {.callout-tip}
++ `in.` means 
+::: -->
+
